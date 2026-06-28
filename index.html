@@ -3,125 +3,130 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Design your silver Italian charm bracelet in 3D — customize every link and preview before ordering.">
-  <title>For Kasya — Italian Charm Bracelet Designer</title>
+  <meta name="description" content="Design your silver Italian charm bracelet — a gift from Muhammad to Kasya.">
+  <meta name="base-path" content="/for-kasya-bracelet">
+  <title>For Kasya — Charm Atelier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="app">
     <header class="header">
       <div class="header-inner">
         <div class="brand">
-          <span class="brand-icon">✦</span>
+          <span class="brand-mark" aria-hidden="true">♥</span>
           <div>
-            <h1>Charm Atelier</h1>
-            <p class="tagline">Silver Italian charm bracelet · 9mm modular links</p>
+            <p class="brand-eyebrow">Charm Atelier</p>
+            <h1 class="brand-title">For Kasya</h1>
           </div>
         </div>
         <nav class="header-actions">
-          <button type="button" class="btn btn-ghost" id="btn-review" title="Full-screen preview">
-            <span aria-hidden="true">👁</span> Preview
-          </button>
-          <button type="button" class="btn btn-ghost" id="btn-share" title="Copy share link">
-            <span aria-hidden="true">🔗</span> Share
-          </button>
+          <button type="button" class="btn btn-ghost" id="btn-review">Preview</button>
+          <button type="button" class="btn btn-ghost" id="btn-share">Share</button>
         </nav>
       </div>
     </header>
 
-    <main class="main">
-      <section class="hero-card" id="gift-banner">
-        <p class="hero-eyebrow">A gift for you, from Muhammad</p>
-        <h2 id="gift-message">Kasya, design your silver charm bracelet</h2>
-        <p class="hero-sub">Build your bracelet in 3D — pick silver links, letters, hearts and charms, then preview and approve when it feels perfect.</p>
+    <main>
+      <section class="hero" id="gift-banner">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <p class="hero-eyebrow" id="hero-eyebrow">A gift from Muhammad</p>
+        <h2 class="hero-title" id="gift-message">Kasya, design your silver charm bracelet</h2>
+        <p class="hero-sub" id="hero-sub">Every link is a real Italian charm photo. Tap to select, pick from the library, preview, then say yes when it's perfect.</p>
       </section>
 
-      <section class="workspace">
-        <div class="bracelet-panel">
-          <div class="panel-header">
-            <h2>Your Bracelet</h2>
-            <div class="length-control">
-              <label for="link-count">Links</label>
-              <button type="button" class="stepper-btn" id="btn-less" aria-label="Remove link">−</button>
-              <output id="link-count" for="link-slider">10</output>
-              <button type="button" class="stepper-btn" id="btn-more" aria-label="Add link">+</button>
-            </div>
+      <section class="panel bracelet-panel">
+        <div class="panel-top">
+          <div>
+            <h2 class="panel-title">Your Bracelet</h2>
+            <p class="panel-desc" id="chain-hint">Tap a charm to select · Pick from the library below to add or swap</p>
           </div>
-
-          <div class="bracelet-stage bracelet-stage-3d" id="bracelet-stage">
-            <div class="bracelet-3d-wrap" id="bracelet-3d-main"></div>
-          </div>
-
-          <div class="link-controls" id="link-controls" hidden>
-            <span class="selected-label">Selected: <strong id="selected-charm-name"></strong></span>
-            <div class="link-controls-btns">
-              <button type="button" class="btn btn-ghost btn-sm" id="btn-move-left">← Move</button>
-              <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-link">Remove</button>
-              <button type="button" class="btn btn-ghost btn-sm" id="btn-move-right">Move →</button>
-            </div>
-          </div>
-
-          <p class="hint" id="chain-hint">Drag to rotate · Click a charm to select · Pick from library to add or swap</p>
-
-          <div class="panel-actions">
-            <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
-            <button type="button" class="btn btn-primary" id="btn-approve">
-              <span aria-hidden="true">♥</span> This is perfect!
-            </button>
+          <div class="length-control">
+            <span class="length-label">Links</span>
+            <button type="button" class="stepper" id="btn-less" aria-label="Remove link">−</button>
+            <output id="link-count">10</output>
+            <button type="button" class="stepper" id="btn-more" aria-label="Add link">+</button>
           </div>
         </div>
 
-        <aside class="palette-panel">
-          <div class="panel-header">
-            <h2>Charm Library</h2>
-            <input type="search" class="search-input" id="charm-search" placeholder="Search charms…" autocomplete="off">
+        <div class="bracelet-viewport" id="bracelet-view">
+          <div class="bracelet-loading" id="bracelet-loading">
+            <span class="loading-shimmer"></span>
+            <p>Loading your bracelet…</p>
           </div>
-          <div class="category-tabs" id="category-tabs" role="tablist"></div>
-          <div class="charm-grid" id="charm-grid" role="listbox" aria-label="Available charms"></div>
-        </aside>
+        </div>
+
+        <div class="selection-bar" id="link-controls" hidden>
+          <div class="selection-info">
+            <span class="selection-label">Selected</span>
+            <strong id="selected-charm-name"></strong>
+          </div>
+          <div class="selection-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-move-left">← Move</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-link">Remove</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-move-right">Move →</button>
+          </div>
+        </div>
+
+        <div class="panel-bottom">
+          <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
+          <button type="button" class="btn btn-primary" id="btn-approve">♥ This is perfect!</button>
+        </div>
       </section>
 
-      <section class="summary-panel" id="summary-panel">
-        <h2>Shopping list</h2>
-        <p class="summary-note">Order <strong>silver 9mm modular Italian charm links</strong> — each item matches your 3D design exactly.</p>
+      <section class="panel library-panel">
+        <div class="library-header">
+          <div>
+            <h2 class="panel-title">Charm Library</h2>
+            <p class="panel-desc" id="library-desc">Real Nomination-style 9mm silver links — tap to add to your bracelet</p>
+          </div>
+          <div class="library-tools">
+            <input type="search" class="library-search" id="charm-search" placeholder="Search charms…" autocomplete="off">
+            <span class="library-count" id="library-count"></span>
+          </div>
+        </div>
+
+        <div class="category-tabs" id="category-tabs" role="tablist"></div>
+        <div class="letter-strip" id="letter-strip" hidden>
+          <p class="letter-strip-label">Quick letters</p>
+          <div class="letter-strip-grid" id="letter-strip-grid"></div>
+        </div>
+        <div class="charm-grid" id="charm-grid" role="listbox" aria-label="Charm library"></div>
+      </section>
+
+      <section class="panel summary-panel">
+        <h2 class="panel-title">Order list</h2>
+        <p class="panel-desc">Muhammad will order these exact links for you</p>
         <ol class="shopping-list" id="shopping-list"></ol>
-        <button type="button" class="btn btn-ghost btn-copy-list" id="btn-copy-list">Copy list</button>
+        <button type="button" class="btn btn-ghost" id="btn-copy-list">Copy order list</button>
       </section>
     </main>
 
-    <footer class="footer">
-      <p>Made with ♥ · 3D preview of sterling silver 9mm Italian charm links</p>
-    </footer>
+    <footer class="footer">Crafted with love · Sterling silver 9mm Italian charm bracelet</footer>
   </div>
 
-  <dialog class="review-modal" id="review-modal" aria-labelledby="review-title">
-    <div class="review-content review-content-3d">
-      <button type="button" class="review-close" id="review-close" aria-label="Close preview">×</button>
-      <p class="review-eyebrow">Your design</p>
-      <h2 id="review-title">Silver Charm Bracelet</h2>
-      <div class="review-bracelet-wrap review-bracelet-wrap-3d">
-        <div class="bracelet-3d-wrap review-3d" id="bracelet-3d-review"></div>
-      </div>
-      <p class="review-count" id="review-count"></p>
-      <div class="review-actions">
-        <button type="button" class="btn btn-primary btn-lg" id="review-approve">
-          <span aria-hidden="true">♥</span> I love this design
-        </button>
+  <dialog class="modal" id="review-modal">
+    <div class="modal-inner">
+      <button type="button" class="modal-close" id="review-close" aria-label="Close">×</button>
+      <p class="modal-eyebrow">Your design</p>
+      <h2 class="modal-title">Silver Charm Bracelet</h2>
+      <div class="bracelet-viewport modal-viewport" id="review-view"></div>
+      <p class="modal-meta" id="review-count"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary btn-lg" id="review-approve">♥ I love this design</button>
         <button type="button" class="btn btn-ghost" id="review-back">Keep editing</button>
       </div>
     </div>
   </dialog>
 
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-  <div class="confetti" id="confetti" aria-hidden="true" hidden></div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <div class="confetti" id="confetti" hidden></div>
 
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="assets/js/charm-images.js"></script>
   <script src="assets/js/charms.js"></script>
-  <script src="assets/js/bracelet-3d.js"></script>
+  <script src="assets/js/bracelet-view.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

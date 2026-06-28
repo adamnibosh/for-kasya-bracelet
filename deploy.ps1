@@ -44,7 +44,7 @@ Write-Host "`n========================================" -ForegroundColor Magenta
 if ($live) {
     Write-Host " LIVE!" -ForegroundColor Green
 } else {
-    Write-Host " Pushed — may take 1-2 min to build" -ForegroundColor Yellow
+    Write-Host " Pushed - may take 1-2 min to build" -ForegroundColor Yellow
 }
 Write-Host " Send Kasya:  $url" -ForegroundColor Cyan
 Write-Host " Your view:    $gifterUrl" -ForegroundColor Cyan

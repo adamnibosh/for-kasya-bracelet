@@ -1,24 +1,43 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'charm-atelier-design';
+  const STORAGE_KEY = 'charm-atelier-v2';
   const APPROVAL_KEY = 'charm-atelier-approved';
 
   let bracelet = [...DEFAULT_BRACELET];
   let selectedIndex = null;
   let activeCategory = 'letters';
 
-  let main3d = null;
-  let review3d = null;
-
-  const $ = (sel) => document.querySelector(sel);
-  const charmGrid = $('#charm-grid');
-  const categoryTabs = $('#category-tabs');
-  const linkCountEl = $('#link-count');
-  const shoppingList = $('#shopping-list');
-  const reviewModal = $('#review-modal');
+  const $ = (s) => document.querySelector(s);
+  const viewEl = $('#bracelet-view');
+  const reviewEl = $('#review-view');
   const toast = $('#toast');
-  const linkControls = $('#link-controls');
+  const loadingEl = $('#bracelet-loading');
+
+  const handlers = {
+    selectedIndex: null,
+    onSelect(idx) {
+      selectedIndex = idx;
+      handlers.selectedIndex = idx;
+      refreshBracelet();
+      updateSelectionBar();
+      renderLibrary();
+    },
+    onRemove(idx) {
+      if (bracelet.length <= 1) { showToast('Keep at least one link'); return; }
+      bracelet.splice(idx, 1);
+      selectedIndex = null;
+      handlers.selectedIndex = null;
+      fullRefresh();
+    },
+    onReorder(from, to) {
+      const [moved] = bracelet.splice(from, 1);
+      bracelet.splice(to, 0, moved);
+      selectedIndex = to;
+      handlers.selectedIndex = to;
+      fullRefresh();
+    },
+  };
 
   function encodeDesign(ids) {
     return btoa(unescape(encodeURIComponent(JSON.stringify(ids))));
@@ -28,322 +47,332 @@
     try {
       const raw = hash.replace(/^#/, '');
       if (!raw) return null;
-      const json = decodeURIComponent(escape(atob(raw)));
-      const parsed = JSON.parse(json);
-      if (!Array.isArray(parsed) || parsed.length < 1) return null;
-      return parsed.filter((id) => CHARM_MAP[id]);
-    } catch {
-      return null;
-    }
+      const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
+      if (Array.isArray(parsed) && parsed.length) return parsed.filter((id) => CHARM_MAP[id]);
+    } catch { /* */ }
+    return null;
   }
 
   function getShareUrl() {
-    const base = window.location.href.split('#')[0].split('?')[0];
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('for')) params.set('for', params.get('for'));
-    const qs = params.toString();
-    return `${base}${qs ? `?${qs}` : ''}#${encodeDesign(bracelet)}`;
+    const base = location.href.split('#')[0].split('?')[0];
+    const q = new URLSearchParams(location.search).toString();
+    return `${base}${q ? `?${q}` : ''}#${encodeDesign(bracelet)}`;
   }
 
-  function loadFromUrl() {
-    const fromHash = decodeDesign(window.location.hash);
-    if (fromHash) { bracelet = fromHash; return true; }
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.every((id) => CHARM_MAP[id])) {
-          bracelet = parsed;
-          return true;
-        }
-      } catch { /* ignore */ }
-    }
-    return false;
+  function loadState() {
+    const fromHash = decodeDesign(location.hash);
+    if (fromHash) { bracelet = fromHash; return; }
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '');
+      if (Array.isArray(saved) && saved.every((id) => CHARM_MAP[id])) bracelet = saved;
+    } catch { /* */ }
   }
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bracelet));
-    const url = new URL(window.location.href);
-    url.hash = encodeDesign(bracelet);
-    history.replaceState(null, '', url);
+    const u = new URL(location.href);
+    u.hash = encodeDesign(bracelet);
+    history.replaceState(null, '', u);
   }
 
-  function createCharmThumb(charm) {
-    const wrap = document.createElement('div');
-    wrap.className = 'charm-photo-wrap';
-    const img = document.createElement('img');
-    img.src = getCharmImageUrl(charm.id);
-    img.alt = charm.name;
-    img.loading = 'lazy';
-    img.width = 88;
-    img.height = 88;
-    wrap.appendChild(img);
-    return wrap;
+  function hideLoading() {
+    if (loadingEl) loadingEl.remove();
   }
 
-  function updateSelectionUI() {
-    const hint = $('#chain-hint');
-    const controls = linkControls;
-
-    if (selectedIndex !== null) {
-      const charm = CHARM_MAP[bracelet[selectedIndex]];
-      hint.innerHTML = `<strong>Link ${selectedIndex + 1} selected</strong> — choose a charm to swap, or use arrows to reorder`;
-      hint.classList.add('hint-active');
-      controls.hidden = false;
-      $('#selected-charm-name').textContent = charm?.name || '';
-    } else {
-      hint.textContent = 'Drag to rotate · Click a charm to select · Pick from library to add or swap';
-      hint.classList.remove('hint-active');
-      controls.hidden = true;
+  function refreshBracelet() {
+    $('#link-count').textContent = bracelet.length;
+    BraceletView.render(viewEl, bracelet, selectedIndex);
+    BraceletView.bind(viewEl, handlers);
+    hideLoading();
+    if ($('#review-modal').open) {
+      BraceletView.render(reviewEl, bracelet, null);
     }
-
-    main3d?.setSelectedIndex(selectedIndex);
   }
 
-  function renderBracelet3D() {
-    linkCountEl.textContent = bracelet.length;
-    if (main3d && main3d._ready) main3d.setBracelet(bracelet);
-    updateSelectionUI();
+  function fullRefresh() {
+    refreshBracelet();
+    renderShoppingList();
+    renderLibrary();
+    persist();
+    checkApproved();
   }
 
-  function renderPalette() {
-    const query = ($('#charm-search').value || '').toLowerCase().trim();
-    charmGrid.innerHTML = '';
+  function updateSelectionBar() {
+    const bar = $('#link-controls');
+    const hint = $('#chain-hint');
+    const libDesc = $('#library-desc');
+    if (selectedIndex !== null) {
+      const c = CHARM_MAP[bracelet[selectedIndex]];
+      bar.hidden = false;
+      $('#selected-charm-name').textContent = c?.name || '';
+      hint.textContent = `Link ${selectedIndex + 1} selected — tap a library charm to swap, or use arrows to move`;
+      hint.classList.add('is-active');
+      if (libDesc) libDesc.textContent = 'Tap any charm below to replace your selected link';
+    } else {
+      bar.hidden = true;
+      hint.textContent = 'Tap a charm to select · Pick from the library below to add or swap';
+      hint.classList.remove('is-active');
+      if (libDesc) libDesc.textContent = 'Real Nomination-style 9mm silver links — tap to add to your bracelet';
+    }
+  }
 
-    CHARMS.filter((c) => {
-      const matchCat = activeCategory === 'all' || c.category === activeCategory;
-      const hay = `${c.name} ${c.shopLabel || ''} ${c.hint || ''} ${c.letter || ''}`.toLowerCase();
-      return matchCat && (!query || hay.includes(query));
-    }).forEach((charm) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'palette-charm';
-      btn.setAttribute('role', 'option');
-      btn.setAttribute('aria-label', charm.name);
-      btn.appendChild(createCharmThumb(charm));
-
-      const label = document.createElement('span');
-      label.className = 'palette-charm-name';
-      label.textContent = charm.name;
-      btn.appendChild(label);
-
-      btn.addEventListener('click', () => addCharm(charm.id));
-      charmGrid.appendChild(btn);
-    });
+  function charmImgHtml(charmId, size) {
+    const url = assetUrl(getCharmImageUrl(charmId));
+    return `<img src="${url}" alt="" loading="lazy" width="${size}" height="${size}" onerror="this.src='${assetUrl(getCharmImageUrl('blank-silver'))}'">`;
   }
 
   function renderCategories() {
-    categoryTabs.innerHTML = '';
-    [{ id: 'all', label: 'All' }, ...CHARM_CATEGORIES].forEach((cat) => {
-      const tab = document.createElement('button');
-      tab.type = 'button';
-      tab.className = 'category-tab' + (activeCategory === cat.id ? ' active' : '');
-      tab.textContent = cat.label;
-      tab.addEventListener('click', () => {
+    const tabs = $('#category-tabs');
+    tabs.innerHTML = '';
+    [{ id: 'all', label: 'All', icon: '✦' }, ...CHARM_CATEGORIES].forEach((cat) => {
+      const count = cat.id === 'all'
+        ? CHARMS.length
+        : CHARMS.filter((c) => c.category === cat.id).length;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cat-tab' + (activeCategory === cat.id ? ' is-active' : '');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', activeCategory === cat.id ? 'true' : 'false');
+      btn.innerHTML = `<span class="cat-icon">${cat.icon || '◆'}</span>${cat.label} <span class="cat-count">${count}</span>`;
+      btn.addEventListener('click', () => {
         activeCategory = cat.id;
         renderCategories();
-        renderPalette();
+        renderLibrary();
       });
-      categoryTabs.appendChild(tab);
+      tabs.appendChild(btn);
+    });
+
+    const strip = $('#letter-strip');
+    const grid = $('#letter-strip-grid');
+    const showLetters = activeCategory === 'letters' || activeCategory === 'all';
+    strip.hidden = !showLetters;
+    if (showLetters && grid) {
+      grid.innerHTML = '';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((L) => {
+        const id = `letter-${L.toLowerCase()}`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'letter-chip';
+        btn.title = `Silver letter ${L}`;
+        btn.innerHTML = `
+          <span class="letter-chip-photo">${charmImgHtml(id, 28)}</span>
+          <span class="letter-chip-char">${L}</span>`;
+        btn.addEventListener('click', () => addCharm(id));
+        grid.appendChild(btn);
+      });
+    }
+  }
+
+  function getFilteredCharms() {
+    const q = ($('#charm-search').value || '').toLowerCase().trim();
+    return CHARMS.filter((c) => {
+      const catOk = activeCategory === 'all' || c.category === activeCategory;
+      const hay = `${c.name} ${c.shopLabel || ''} ${c.letter || ''} ${c.hint || ''}`.toLowerCase();
+      return catOk && (!q || hay.includes(q));
+    });
+  }
+
+  function renderLibrary() {
+    const items = getFilteredCharms();
+    const grid = $('#charm-grid');
+    const countEl = $('#library-count');
+    grid.innerHTML = '';
+
+    if (countEl) {
+      countEl.textContent = `${items.length} charm${items.length === 1 ? '' : 's'}`;
+    }
+
+    if (!items.length) {
+      grid.innerHTML = '<p class="grid-empty">No charms match your search — try another word or category</p>';
+      return;
+    }
+
+    const selectedId = selectedIndex !== null ? bracelet[selectedIndex] : null;
+
+    items.forEach((charm, i) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'charm-card';
+      card.style.animationDelay = `${Math.min(i * 0.02, 0.4)}s`;
+      if (selectedId === charm.id) card.classList.add('is-on-bracelet');
+      card.setAttribute('aria-label', charm.name);
+      card.innerHTML = `
+        <div class="charm-card-photo">
+          ${charmImgHtml(charm.id, 120)}
+          <span class="charm-card-shine" aria-hidden="true"></span>
+        </div>
+        <span class="charm-card-name">${charm.name}</span>
+        <span class="charm-card-sub">${charm.hint || charm.shopLabel || ''}</span>
+        ${charm.dangling ? '<span class="charm-card-tag">Dangle</span>' : ''}
+        ${selectedId === charm.id ? '<span class="charm-card-tag is-selected-tag">On bracelet</span>' : ''}`;
+      card.addEventListener('click', () => addCharm(charm.id));
+      grid.appendChild(card);
     });
   }
 
   function renderShoppingList() {
-    shoppingList.innerHTML = '';
+    const list = $('#shopping-list');
+    list.innerHTML = '';
     const counts = {};
     bracelet.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
-    Object.entries(counts).forEach(([id, count]) => {
-      const charm = CHARM_MAP[id];
+    Object.entries(counts).forEach(([id, n]) => {
+      const c = CHARM_MAP[id];
       const li = document.createElement('li');
-      li.innerHTML = `<span class="shop-qty">${count}×</span><span class="shop-detail"><strong>${charm.shopLabel || charm.name}</strong></span>`;
-      shoppingList.appendChild(li);
+      li.innerHTML = `
+        <span class="shop-thumb">${charmImgHtml(id, 40)}</span>
+        <span class="shop-qty">${n}×</span>
+        <span class="shop-name">${c.shopLabel || c.name}</span>`;
+      list.appendChild(li);
     });
   }
 
-  function render() {
-    renderBracelet3D();
-    renderPalette();
-    renderShoppingList();
-    persist();
-    checkApprovalState();
-  }
-
-  function addCharm(charmId) {
-    const swapped = selectedIndex !== null;
-    if (swapped) {
-      bracelet[selectedIndex] = charmId;
+  function addCharm(id) {
+    const swap = selectedIndex !== null;
+    if (swap) {
+      bracelet[selectedIndex] = id;
       selectedIndex = null;
+      handlers.selectedIndex = null;
     } else {
-      bracelet.push(charmId);
+      bracelet.push(id);
     }
-    render();
-    showToast(swapped ? 'Charm swapped' : 'Charm added');
+    fullRefresh();
+    updateSelectionBar();
+    showToast(swap ? 'Charm swapped ✓' : 'Added to your bracelet ✓');
+    viewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  function moveLink(dir) {
+  function moveLink(d) {
     if (selectedIndex === null) return;
-    const next = selectedIndex + dir;
+    const next = selectedIndex + d;
     if (next < 0 || next >= bracelet.length) return;
     [bracelet[selectedIndex], bracelet[next]] = [bracelet[next], bracelet[selectedIndex]];
     selectedIndex = next;
-    render();
+    handlers.selectedIndex = next;
+    fullRefresh();
+    updateSelectionBar();
   }
 
-  function removeSelected() {
-    if (selectedIndex === null) return;
-    if (bracelet.length <= 1) { showToast('Keep at least one link'); return; }
-    bracelet.splice(selectedIndex, 1);
-    selectedIndex = null;
-    render();
-  }
-
-  function showToast(message, duration = 2800) {
-    toast.textContent = message;
+  function showToast(msg, ms = 3000) {
+    toast.textContent = msg;
     toast.hidden = false;
     toast.classList.add('show');
     clearTimeout(showToast._t);
     showToast._t = setTimeout(() => {
       toast.classList.remove('show');
-      setTimeout(() => { toast.hidden = true; }, 350);
-    }, duration);
+      setTimeout(() => { toast.hidden = true; }, 300);
+    }, ms);
   }
 
   function launchConfetti() {
-    const container = $('#confetti');
-    container.hidden = false;
-    container.innerHTML = '';
-    const colors = ['#c5cdd6', '#e8a0b4', '#64b5f6', '#f4f6f8'];
-    for (let i = 0; i < 50; i++) {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.style.left = `${Math.random() * 100}%`;
-      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-      piece.style.animationDuration = `${1.5 + Math.random() * 2}s`;
-      container.appendChild(piece);
+    const box = $('#confetti');
+    box.hidden = false;
+    box.innerHTML = '';
+    const colors = ['#c9a87c', '#e8b4b8', '#d4dce4', '#fff', '#b8956b'];
+    for (let j = 0; j < 60; j++) {
+      const p = document.createElement('i');
+      p.style.cssText = `left:${Math.random() * 100}%;background:${colors[j % colors.length]};width:${6 + Math.random() * 6}px;height:${6 + Math.random() * 6}px;animation-duration:${1.2 + Math.random() * 1.5}s;animation-delay:${Math.random() * 0.4}s`;
+      box.appendChild(p);
     }
-    setTimeout(() => { container.hidden = true; container.innerHTML = ''; }, 4000);
+    setTimeout(() => { box.hidden = true; box.innerHTML = ''; }, 4500);
   }
 
-  function approveDesign() {
-    const shareUrl = getShareUrl();
-    localStorage.setItem(APPROVAL_KEY, JSON.stringify({ bracelet: [...bracelet], approvedAt: new Date().toISOString(), shareUrl }));
-    document.querySelector('.bracelet-panel').classList.add('approved');
-    let badge = document.querySelector('.approved-badge');
-    if (!badge) {
-      badge = document.createElement('div');
-      badge.className = 'approved-badge';
-      document.querySelector('.bracelet-panel .panel-header').prepend(badge);
-    }
-    badge.innerHTML = '♥ Approved — share the link with Muhammad';
+  function approve() {
+    const url = getShareUrl();
+    localStorage.setItem(APPROVAL_KEY, JSON.stringify({ bracelet: [...bracelet], at: Date.now(), url }));
+    $('.bracelet-panel').classList.add('is-approved');
     launchConfetti();
-    copyText(shareUrl).then(() => showToast('Link copied! Send it to Muhammad 💕', 4500));
-    if (reviewModal.open) reviewModal.close();
+    copyText(url).then(() => showToast('Link copied — send it to Muhammad! 💕', 5000));
+    if ($('#review-modal').open) $('#review-modal').close();
   }
 
-  function checkApprovalState() {
-    const approved = localStorage.getItem(APPROVAL_KEY);
-    if (!approved) return;
+  function checkApproved() {
     try {
-      const data = JSON.parse(approved);
-      if (JSON.stringify(data.bracelet) === JSON.stringify(bracelet)) {
-        document.querySelector('.bracelet-panel').classList.add('approved');
+      const d = JSON.parse(localStorage.getItem(APPROVAL_KEY) || '');
+      if (JSON.stringify(d.bracelet) === JSON.stringify(bracelet)) {
+        $('.bracelet-panel').classList.add('is-approved');
       }
-    } catch { /* ignore */ }
+    } catch { /* */ }
   }
 
-  function setupGiftMode() {
-    const params = new URLSearchParams(window.location.search);
-    const gifter = params.get('view') === 'gifter';
-    const herName = params.get('for') || 'Kasya';
-
-    $('#gift-message').textContent = `${herName}, design your silver charm bracelet`;
-    $('.hero-sub').textContent = 'Build your bracelet in 3D — pick silver links, letters, hearts and charms, then preview and approve when it feels perfect.';
-
+  function setupGift() {
+    const p = new URLSearchParams(location.search);
+    const name = p.get('for') || 'Kasya';
+    const gifter = p.get('view') === 'gifter';
+    $('#gift-message').textContent = `${name}, design your silver charm bracelet`;
     if (gifter) {
       document.body.classList.add('gifter-mode');
-      $('.hero-eyebrow').textContent = 'Approved design';
-      $('#gift-message').textContent = `${herName}'s bracelet design`;
-      $('.hero-sub').textContent = 'Order these 9mm silver Italian charm links from the list below.';
+      $('#hero-eyebrow').textContent = 'Her approved design';
+      $('#gift-message').textContent = `${name}'s bracelet design`;
+      $('#hero-sub').textContent = 'Order these exact silver Italian charm links below.';
     }
   }
 
-  function copyText(text) {
-    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    return Promise.resolve();
-  }
-
-  function openReview() {
-    reviewModal.showModal();
-    if (!review3d) {
-      review3d = new Bracelet3D($('#bracelet-3d-review'), { autoRotate: true, onSelect: () => {} });
-    }
-    requestAnimationFrame(() => {
-      review3d.resize();
-      review3d.setBracelet(bracelet);
-    });
-    $('#review-count').textContent = `${bracelet.length} links · ${new Set(bracelet).size} unique charms`;
-  }
-
-  function init3D() {
-    main3d = new Bracelet3D($('#bracelet-3d-main'), {
-      autoRotate: true,
-      onSelect: (idx) => {
-        selectedIndex = idx;
-        updateSelectionUI();
-      },
-    });
-    requestAnimationFrame(() => {
-      main3d?.resize();
-      main3d?.setBracelet(bracelet);
+  function copyText(t) {
+    return navigator.clipboard?.writeText(t) || new Promise((res) => {
+      const a = document.createElement('textarea');
+      a.value = t;
+      document.body.appendChild(a);
+      a.select();
+      document.execCommand('copy');
+      a.remove();
+      res();
     });
   }
 
-  $('#btn-more').addEventListener('click', () => { bracelet.push('blank-silver'); render(); });
-  $('#btn-less').addEventListener('click', () => {
-    if (bracelet.length <= 1) { showToast('Keep at least one link'); return; }
+  const reviewModal = $('#review-modal');
+
+  $('#btn-more').onclick = () => { bracelet.push('blank-silver'); fullRefresh(); };
+  $('#btn-less').onclick = () => {
+    if (bracelet.length <= 1) return showToast('Keep at least one link');
     bracelet.pop();
-    render();
-  });
-  $('#btn-reset').addEventListener('click', () => {
-    if (!confirm('Start over?')) return;
+    fullRefresh();
+  };
+  $('#btn-reset').onclick = () => {
+    if (!confirm('Start over with a fresh bracelet?')) return;
     bracelet = [...DEFAULT_BRACELET];
     selectedIndex = null;
+    handlers.selectedIndex = null;
     localStorage.removeItem(APPROVAL_KEY);
-    document.querySelector('.bracelet-panel').classList.remove('approved');
-    document.querySelector('.approved-badge')?.remove();
-    render();
-  });
-  $('#btn-move-left').addEventListener('click', () => moveLink(-1));
-  $('#btn-move-right').addEventListener('click', () => moveLink(1));
-  $('#btn-remove-link').addEventListener('click', removeSelected);
-  $('#btn-approve').addEventListener('click', approveDesign);
-  $('#review-approve').addEventListener('click', approveDesign);
-  $('#btn-review').addEventListener('click', openReview);
-  $('#review-close').addEventListener('click', () => reviewModal.close());
-  $('#review-back').addEventListener('click', () => reviewModal.close());
-  reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.close(); });
-  $('#btn-share').addEventListener('click', () => copyText(getShareUrl()).then(() => showToast('Link copied!')));
-  $('#btn-copy-list').addEventListener('click', () => {
-    const lines = ['Silver Italian Charm Bracelet', `Links: ${bracelet.length}`, ''];
-    const counts = {};
-    bracelet.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
-    Object.entries(counts).forEach(([id, c]) => lines.push(`${c}× ${CHARM_MAP[id].shopLabel || CHARM_MAP[id].name}`));
-    copyText(lines.join('\n')).then(() => showToast('Shopping list copied'));
-  });
-  $('#charm-search').addEventListener('input', renderPalette);
+    $('.bracelet-panel').classList.remove('is-approved');
+    fullRefresh();
+    updateSelectionBar();
+  };
+  $('#btn-move-left').onclick = () => moveLink(-1);
+  $('#btn-move-right').onclick = () => moveLink(1);
+  $('#btn-remove-link').onclick = () => handlers.onRemove(selectedIndex);
+  $('#btn-approve').onclick = approve;
+  $('#review-approve').onclick = approve;
+  $('#btn-review').onclick = () => {
+    BraceletView.render(reviewEl, bracelet, null);
+    $('#review-count').textContent = `${bracelet.length} links · ${new Set(bracelet).size} unique charms`;
+    reviewModal.showModal();
+  };
+  $('#review-close').onclick = () => reviewModal.close();
+  $('#review-back').onclick = () => reviewModal.close();
+  reviewModal.onclick = (e) => { if (e.target === reviewModal) reviewModal.close(); };
+  $('#btn-share').onclick = () => copyText(getShareUrl()).then(() => showToast('Link copied!'));
+  $('#btn-copy-list').onclick = () => {
+    const lines = ['Kasya — Silver Italian Charm Bracelet', `Total: ${bracelet.length} links`, ''];
+    const c = {};
+    bracelet.forEach((id) => { c[id] = (c[id] || 0) + 1; });
+    Object.entries(c).forEach(([id, n]) => lines.push(`${n}× ${CHARM_MAP[id].shopLabel}`));
+    copyText(lines.join('\n')).then(() => showToast('Order list copied'));
+  };
+  $('#charm-search').oninput = renderLibrary;
 
-  setupGiftMode();
-  loadFromUrl();
-  renderCategories();
-  init3D();
-  renderPalette();
-  renderShoppingList();
-  persist();
-  checkApprovalState();
+  try {
+    setupGift();
+    loadState();
+    renderCategories();
+    refreshBracelet();
+    renderLibrary();
+    renderShoppingList();
+    updateSelectionBar();
+    persist();
+    checkApproved();
+  } catch (err) {
+    console.error(err);
+    hideLoading();
+    showToast('Something went wrong — try refreshing the page');
+  }
 })();

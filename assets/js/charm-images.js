@@ -30,3 +30,15 @@ const CHARM_IMAGE_MAP = {
 function getCharmImageUrl(charmId) {
   return CHARM_IMAGE_MAP[charmId] || CHARM_IMAGE_MAP['blank-silver'];
 }
+
+/** Resolve path for GitHub Pages subfolder or local dev */
+function assetUrl(path) {
+  if (typeof document === 'undefined') return path;
+  const base = document.querySelector('meta[name="base-path"]')?.content || '';
+  if (!path || path.startsWith('http') || path.startsWith('data:')) return path;
+  const clean = path.replace(/^\//, '');
+  if (!base) return clean;
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (isLocal) return clean;
+  return `${base.replace(/\/$/, '')}/${clean}`;
+}
