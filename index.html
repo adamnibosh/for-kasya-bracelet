@@ -31,6 +31,7 @@
           </div>
         </div>
         <nav class="header-actions">
+          <button type="button" class="btn btn-text" id="btn-letter">A note for you</button>
           <button type="button" class="btn btn-text" id="btn-review">Preview</button>
           <button type="button" class="btn btn-outline" id="btn-share">Share Design</button>
         </nav>
@@ -50,6 +51,24 @@
           <li><span class="trust-label">Link size</span><span class="trust-value">9mm Modular</span></li>
           <li><span class="trust-label">Origin</span><span class="trust-value">Italian Composable</span></li>
         </ul>
+      </section>
+
+      <section class="effort-panel" id="effort-panel">
+        <p class="section-eyebrow">Prepared for you</p>
+        <h2 class="panel-title">What Muhammad made for you</h2>
+        <p class="effort-lead" id="effort-lead">This is not a shop — it is a private atelier, built only for Kasya.</p>
+        <ul class="effort-stats" id="effort-stats">
+          <li><span class="effort-num" id="stat-charms">47</span><span class="effort-label">Real charm photographs</span></li>
+          <li><span class="effort-num">A–Z</span><span class="effort-label">Silver letter links</span></li>
+          <li><span class="effort-num">9mm</span><span class="effort-label">Italian composable size</span></li>
+          <li><span class="effort-num">∞</span><span class="effort-label">Designs you can create</span></li>
+        </ul>
+        <div class="effort-steps">
+          <div class="effort-step"><span class="step-n">01</span><p>Design your bracelet with real Nomination-style links</p></div>
+          <div class="effort-step"><span class="step-n">02</span><p>Preview and arrange every charm until it feels right</p></div>
+          <div class="effort-step"><span class="step-n">03</span><p>Approve your design — Muhammad orders exactly what you chose</p></div>
+        </div>
+        <button type="button" class="btn btn-text effort-letter-btn" id="btn-letter-inline">Read Muhammad's note →</button>
       </section>
 
       <section class="panel bracelet-panel">
@@ -133,6 +152,22 @@
       <p class="footer-tag">Sterling silver · 9mm Italian composable links · A gift of enduring elegance</p>
     </footer>
   </div>
+
+  <dialog class="modal reveal-modal" id="reveal-modal">
+    <div class="modal-inner reveal-inner">
+      <button type="button" class="modal-close" id="reveal-close" aria-label="Close">×</button>
+      <p class="modal-eyebrow">A note from Muhammad</p>
+      <h2 class="reveal-title" id="reveal-title">For Kasya</h2>
+      <div class="reveal-body" id="reveal-body">
+        <p>Kasya,</p>
+        <p>I wanted to give you something that felt as special as you are — not just a bracelet, but a place where <em>you</em> get to design it.</p>
+        <p>So I built this for you. Every charm you see is a real silver Italian link. I started with your name — <strong>K-A-S-Y-A</strong> — but the rest is yours to choose.</p>
+        <p>Take your time. Swap links, add hearts, make it yours. When you love it, press approve — and I will order every link exactly as you designed it.</p>
+        <p class="reveal-sign">This was made with love, only for you.<br><strong>— Muhammad</strong></p>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg" id="reveal-begin">Begin designing</button>
+    </div>
+  </dialog>
 
   <dialog class="modal" id="review-modal">
     <div class="modal-inner">

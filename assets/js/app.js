@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = 'charm-atelier-v2';
   const APPROVAL_KEY = 'charm-atelier-approved';
+  const REVEAL_KEY = 'charm-atelier-reveal-seen';
 
   let bracelet = [...DEFAULT_BRACELET];
   let selectedIndex = null;
@@ -306,18 +307,77 @@
     });
   }
 
+  function openReveal() {
+    const p = new URLSearchParams(location.search);
+    const name = p.get('for') || 'Kasya';
+    $('#reveal-title').textContent = `For ${name}`;
+    const body = $('#reveal-body');
+    if (body) {
+      body.innerHTML = `
+        <p>${name},</p>
+        <p>I wanted to give you something that felt as special as you are — not just a bracelet, but a place where <em>you</em> get to design it.</p>
+        <p>So I built this for you. Every charm you see is a real silver Italian link. I started with your name — <strong>K-A-S-Y-A</strong> — but the rest is yours to choose.</p>
+        <p>Take your time. Swap links, add hearts, make it yours. When you love it, press approve — and I will order every link exactly as you designed it.</p>
+        <p class="reveal-sign">This was made with love, only for you.<br><strong>— Muhammad</strong></p>`;
+    }
+    $('#reveal-modal').showModal();
+  }
+
+  function maybeShowReveal() {
+    const p = new URLSearchParams(location.search);
+    if (p.get('view') === 'gifter') return;
+    if (p.get('reveal') === '1' || !localStorage.getItem(REVEAL_KEY)) {
+      setTimeout(openReveal, 600);
+    }
+  }
+
+  function setupEffortPanel() {
+    const stat = $('#stat-charms');
+    if (stat) stat.textContent = String(CHARMS.length);
+    const p = new URLSearchParams(location.search);
+    const name = p.get('for') || 'Kasya';
+    const gifter = p.get('view') === 'gifter';
+    const showcase = p.get('view') === 'showcase';
+    const lead = $('#effort-lead');
+    const panel = $('#effort-panel');
+    if (gifter) {
+      panel?.classList.add('effort-panel--hide');
+      return;
+    }
+    if (showcase) {
+      document.body.classList.add('showcase-mode');
+      if (lead) lead.textContent = `A private charm atelier — custom-built by Muhammad as a gift for ${name}.`;
+      $('#effort-panel .panel-title').textContent = 'What I built for her';
+      $('#btn-letter')?.remove();
+      $('#btn-letter-inline')?.remove();
+      return;
+    }
+    if (lead) lead.textContent = `This is not a shop — it is a private atelier, built only for ${name}.`;
+  }
+
   function setupGift() {
     const p = new URLSearchParams(location.search);
     const name = p.get('for') || 'Kasya';
     const gifter = p.get('view') === 'gifter';
-    document.title = gifter ? `${name}'s Bracelet — Charm Atelier` : `For ${name} — Charm Atelier`;
-    $('#gift-message').textContent = `${name}, design your silver charm bracelet`;
+    const showcase = p.get('view') === 'showcase';
+    document.title = gifter
+      ? `${name}'s Bracelet — Charm Atelier`
+      : showcase
+        ? `Gift for ${name} — Charm Atelier`
+        : `For ${name} — Charm Atelier`;
+    $('#gift-message').textContent = `${name}, compose your silver charm bracelet`;
     if (gifter) {
       document.body.classList.add('gifter-mode');
       $('#hero-eyebrow').textContent = 'Her approved design';
       $('#gift-message').textContent = `${name}'s bracelet design`;
       $('#hero-sub').textContent = 'Order these exact silver Italian charm links below.';
       $('#hero-note').hidden = true;
+      $('#btn-letter')?.remove();
+    } else if (showcase) {
+      $('#hero-eyebrow').textContent = 'A gift I made for her';
+      $('#gift-message').textContent = `A charm atelier for ${name}`;
+      $('#hero-sub').textContent = 'I built this so she can design her own sterling silver Italian charm bracelet — real photos, her choices, her approval.';
+      $('#hero-note').textContent = '— Muhammad';
     } else {
       $('#hero-sub').textContent = `${name}, compose your bracelet from authentic sterling silver links. Each piece is shown in true product photography — select, arrange, preview, and approve when it is perfect.`;
       $('#hero-note').textContent = 'With love, from Muhammad';
@@ -377,8 +437,23 @@
   };
   $('#charm-search').oninput = renderLibrary;
 
+  const revealModal = $('#reveal-modal');
+  const openLetter = () => openReveal();
+  $('#btn-letter')?.addEventListener('click', openLetter);
+  $('#btn-letter-inline')?.addEventListener('click', openLetter);
+  $('#reveal-close')?.addEventListener('click', () => revealModal.close());
+  $('#reveal-begin')?.addEventListener('click', () => {
+    localStorage.setItem(REVEAL_KEY, '1');
+    revealModal.close();
+    $('.bracelet-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  revealModal?.addEventListener('click', (e) => {
+    if (e.target === revealModal) revealModal.close();
+  });
+
   try {
     setupGift();
+    setupEffortPanel();
     loadState();
     preloadBraceletImages();
     renderCategories();
@@ -388,6 +463,7 @@
     updateSelectionBar();
     persist();
     checkApproved();
+    maybeShowReveal();
   } catch (err) {
     console.error(err);
     hideLoading();
