@@ -19,33 +19,8 @@ spec = importlib.util.spec_from_file_location("proc", ROOT / "scripts" / "proces
 proc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(proc)
 
-# Verified letter stems (visually identified from bracelet.zip)
-LETTER_STEMS = {
-    "letter-a": "54ebf031b94a",
-    "letter-b": "88c2ef73fb2e",
-    "letter-c": "175346fb2a8e",
-    "letter-d": "e74d45d0b681",
-    "letter-e": "bbe80f9e86ef",
-    "letter-f": "7f4312061414",
-    "letter-h": "b2c68fa5d6a7",
-    "letter-j": "6cf276e45154",
-    "letter-k": "6e135abe45ef",
-    "letter-l": "d6edc9765a68",
-    "letter-m": "b77a8f3f81ca",
-    "letter-n": "69dd56fac88e",
-    "letter-o": "180e69a90746",
-    "letter-p": "13a6cec624e5",
-    "letter-q": "5bb959af1c8d",
-    "letter-r": "cc4920d49832",
-    "letter-s": "2ce53255016b",
-    "letter-t": "b1d823ea99ad",
-    "letter-u": "ce763695cf91",
-    "letter-v": "96ddb8ba30be",
-    "letter-w": "635784f2062d",
-    "letter-x": "2afceda9ffe9",
-    "letter-y": "75327dc918ea",
-    "letter-z": "2adf97645915",
-}
+# Silver raised letters — from Nomination product photos (not black-enamel zip style)
+LETTER_STEMS = {}
 
 CHARM_STEMS = {
     "blank-silver": "2c2776f394b2",
@@ -70,8 +45,8 @@ CHARM_STEMS = {
     "star": "639b7db428bb",
 }
 
-# G and I not present as silver letters in zip — process from existing photos
-FROM_OLD_JPG = ["letter-g", "letter-i", "nameplate"]
+# All A–Z silver raised letters + nameplate from product JPGs
+FROM_OLD_JPG = [f"letter-{c}" for c in "abcdefghijklmnopqrstuvwxyz"] + ["nameplate"]
 
 
 def find_source(stem: str) -> Path | None:
@@ -102,7 +77,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     mapping: dict[str, str] = {}
 
-    all_maps = {**LETTER_STEMS, **CHARM_STEMS}
+    all_maps = {**CHARM_STEMS}
     for charm_id, stem in sorted(all_maps.items()):
         src = find_source(stem)
         if not src:

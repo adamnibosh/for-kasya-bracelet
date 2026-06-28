@@ -34,8 +34,8 @@ class Bracelet3D {
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
-    this.camera.position.set(0, 2.8, 7);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(0, 3.2, 8.5);
+    this.camera.lookAt(0, 0.2, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(w, h);
@@ -104,6 +104,8 @@ class Bracelet3D {
   setBracelet(charmIds) {
     if (!this._ready) return;
     this.charmIds = [...charmIds];
+    this.textureCache.forEach((tex) => tex.dispose());
+    this.textureCache.clear();
     this._clearGroup(this.braceletGroup);
     this.linkMeshes = [];
 
@@ -141,7 +143,7 @@ class Bracelet3D {
     claspR.rotation.y = -aR;
     this.braceletGroup.add(claspL, claspR);
 
-    this.braceletGroup.scale.setScalar(1.15);
+    this.braceletGroup.scale.setScalar(1.28);
     this.setSelectedIndex(this.selectedIndex);
   }
 
@@ -246,7 +248,7 @@ class Bracelet3D {
   _getTexture(charm) {
     if (this.textureCache.has(charm.id)) return this.textureCache.get(charm.id);
 
-    const url = getCharmImageUrl(charm.id);
+    const url = assetUrl(getCharmImageUrl(charm.id));
     const tex = this.textureLoader.load(url);
     tex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
     if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -310,6 +312,11 @@ class Bracelet3D {
     if (this.braceletGroup) {
       this.braceletGroup.rotation.y = this.rotateY;
       this.braceletGroup.position.y = Math.sin(performance.now() * 0.001) * 0.06;
+      const t = performance.now() * 0.001;
+      this.linkMeshes.forEach((mesh, i) => {
+        const dangle = mesh.children.find((c) => c.position.y < -0.3);
+        if (dangle) dangle.rotation.z = Math.sin(t * 2 + i) * 0.12;
+      });
     }
     this.renderer.render(this.scene, this.camera);
   }

@@ -1,5 +1,5 @@
 /** HD transparent charms from bracelet.zip example */
-const IMAGE_VERSION = 'v5-hd';
+const IMAGE_VERSION = 'v6-3d';
 
 const CHARM_IMAGE_MAP = {
   "blank-silver": "assets/charms-hd/blank-silver.png",

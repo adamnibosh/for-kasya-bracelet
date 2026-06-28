@@ -347,6 +347,13 @@ body {
   border: 1px solid var(--hairline);
 }
 
+.bracelet-stage-3d {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255,255,255,0.9), transparent 72%),
+    radial-gradient(ellipse 45% 25% at 50% 78%, rgba(154,123,82,0.08), transparent),
+    linear-gradient(180deg, var(--cream) 0%, var(--ivory) 100%);
+}
+
 .bracelet-stage::before {
   content: '';
   position: absolute;
@@ -362,6 +369,33 @@ body {
   overflow: hidden;
   cursor: grab;
   touch-action: pan-y;
+}
+
+.bracelet-viewport.is-3d {
+  min-height: 400px;
+  padding: 0;
+  cursor: default;
+}
+
+.bracelet-3d-canvas {
+  display: block;
+  width: 100% !important;
+  height: 400px !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.bracelet-3d-canvas:active {
+  cursor: grabbing;
+}
+
+.bracelet-3d-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .bracelet-viewport:has(.bv-stage.is-dragging-arc) {

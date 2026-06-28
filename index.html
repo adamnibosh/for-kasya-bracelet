@@ -83,7 +83,7 @@
           <div>
             <p class="section-eyebrow">Your Creation</p>
             <h2 class="panel-title">The Bracelet</h2>
-            <p class="panel-desc" id="chain-hint">Select a link, then choose from the collection below</p>
+            <p class="panel-desc" id="chain-hint">Drag to rotate the 3D bracelet · Click a link to select</p>
           </div>
           <div class="length-control">
             <span class="length-label">Links</span>
@@ -93,8 +93,8 @@
           </div>
         </div>
 
-        <div class="bracelet-stage">
-          <div class="bracelet-viewport" id="bracelet-view">
+        <div class="bracelet-stage bracelet-stage-3d">
+          <div class="bracelet-viewport is-3d" id="bracelet-view">
             <div class="bracelet-loading" id="bracelet-loading">
               <span class="loading-shimmer"></span>
               <p>Preparing your atelier…</p>
@@ -191,9 +191,11 @@
   <div class="toast" id="toast" role="status" hidden></div>
   <div class="confetti" id="confetti" hidden></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="assets/js/charm-images.js"></script>
   <script src="assets/js/charms.js"></script>
   <script src="assets/js/bracelet-view.js"></script>
+  <script src="assets/js/bracelet-3d.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

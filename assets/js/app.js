@@ -15,12 +15,17 @@
   const toast = $('#toast');
   const loadingEl = $('#bracelet-loading');
 
+  const can3d = typeof THREE !== 'undefined' && typeof Bracelet3D !== 'undefined';
+  let viewer3d = null;
+  let review3d = null;
+
   const handlers = {
     selectedIndex: null,
     onSelect(idx) {
       selectedIndex = idx;
       handlers.selectedIndex = idx;
-      refreshBracelet();
+      if (viewer3d) viewer3d.setSelectedIndex(idx);
+      else refreshBracelet();
       updateSelectionBar();
       renderLibrary();
     },
@@ -80,13 +85,35 @@
     if (loadingEl) loadingEl.remove();
   }
 
+  function renderBraceletIn(el, index, isReview) {
+    if (!el) return;
+    if (can3d) {
+      el.classList.add('is-3d');
+      let active = isReview ? review3d : viewer3d;
+      if (!active || !el.querySelector('.bracelet-3d-canvas')) {
+        el.innerHTML = '';
+        active = new Bracelet3D(el, {
+          onSelect: isReview ? () => {} : (idx) => handlers.onSelect(idx),
+          autoRotate: !isReview,
+        });
+        if (isReview) review3d = active;
+        else viewer3d = active;
+      }
+      active?.setBracelet(bracelet);
+      active?.setSelectedIndex(isReview ? null : index);
+      return;
+    }
+    el.classList.remove('is-3d');
+    BraceletView.render(el, bracelet, index);
+    if (!isReview) BraceletView.bind(el, handlers);
+  }
+
   function refreshBracelet() {
     $('#link-count').textContent = bracelet.length;
-    BraceletView.render(viewEl, bracelet, selectedIndex);
-    BraceletView.bind(viewEl, handlers);
+    renderBraceletIn(viewEl, selectedIndex, false);
     hideLoading();
     if ($('#review-modal').open) {
-      BraceletView.render(reviewEl, bracelet, null);
+      renderBraceletIn(reviewEl, null, true);
     }
   }
 
@@ -106,7 +133,7 @@
       const c = CHARM_MAP[bracelet[selectedIndex]];
       bar.hidden = false;
       $('#selected-charm-name').textContent = c?.name || '';
-      hint.textContent = `Link ${selectedIndex + 1} selected — tap a library charm to swap, or use arrows to move`;
+      hint.textContent = `Link ${selectedIndex + 1} selected — pick a charm below to swap, or use Move left/right`;
       hint.classList.add('is-active');
       if (libDesc) libDesc.textContent = 'Tap any charm below to replace your selected link';
     } else {
@@ -420,7 +447,7 @@
   $('#btn-approve').onclick = approve;
   $('#review-approve').onclick = approve;
   $('#btn-review').onclick = () => {
-    BraceletView.render(reviewEl, bracelet, null);
+    renderBraceletIn(reviewEl, null, true);
     $('#review-count').textContent = `${bracelet.length} links · ${new Set(bracelet).size} unique charms`;
     reviewModal.showModal();
   };
