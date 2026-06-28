@@ -172,10 +172,18 @@ body {
 
 .hero-sub {
   margin: 0 auto;
-  max-width: 32rem;
+  max-width: 34rem;
   color: var(--muted);
   font-weight: 300;
   font-size: 0.95rem;
+}
+
+.hero-note {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--rose-gold);
 }
 
 /* Panels */
@@ -435,6 +443,18 @@ body {
 }
 
 .selection-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+
+.approved-ribbon {
+  margin: -0.25rem 0 1rem;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #5a4638;
+  background: linear-gradient(135deg, #fff5eb, #f8e8dc);
+  border: 1px solid var(--rose-gold-light);
+  border-radius: 12px;
+}
 
 .bracelet-panel.is-approved {
   border-color: var(--rose-gold);

@@ -29,7 +29,7 @@ const CHARMS = [
   { id: 'kitten', name: 'Kitten', shopLabel: '9mm Kitten Italian charm link', category: 'animals', render: 'kitten', dangling: true, hint: 'Dangling kitten charm on silver link.' },
   { id: 'cat-black', name: 'Black Cat', shopLabel: '9mm Black Cat Italian charm link', category: 'animals', render: 'cat-black', hint: 'Black cat silhouette on silver face.' },
   { id: 'butterfly', name: 'Blue Butterfly', shopLabel: '9mm Blue Butterfly Italian charm link', category: 'animals', render: 'butterfly', dangling: true, hint: 'Blue butterfly with dangling chain.' },
-  { id: 'jellyfish', name: 'Pink Jellyfish', shopLabel: '9mm Pink Jellyfish Italian charm link', category: 'animals', render: 'jellyfish', dangling: true, hint: 'Pink jellyfish pendant on silver link.' },
+  { id: 'jellyfish', name: 'Shell Dangle', shopLabel: '9mm Shell with Mother-of-Pearl Italian charm link', category: 'animals', render: 'jellyfish', dangling: true, hint: 'Mother-of-pearl shell on dangling silver link.' },
 
   { id: 'checkered-red', name: 'Red Checkered', shopLabel: '9mm Red Checkered Italian charm link', category: 'symbols', render: 'checkered-red', hint: 'Red and white gingham enamel pattern.' },
   { id: 'cherry', name: 'Cherry', shopLabel: '9mm Cherry Italian charm link', category: 'symbols', render: 'cherry', hint: 'Twin red cherries on silver.' },

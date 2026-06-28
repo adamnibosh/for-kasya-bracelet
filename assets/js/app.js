@@ -279,31 +279,48 @@
   function approve() {
     const url = getShareUrl();
     localStorage.setItem(APPROVAL_KEY, JSON.stringify({ bracelet: [...bracelet], at: Date.now(), url }));
-    $('.bracelet-panel').classList.add('is-approved');
+    setApprovedUI(true);
     launchConfetti();
     copyText(url).then(() => showToast('Link copied — send it to Muhammad! 💕', 5000));
     if ($('#review-modal').open) $('#review-modal').close();
   }
 
+  function setApprovedUI(on) {
+    $('.bracelet-panel').classList.toggle('is-approved', on);
+    const ribbon = $('#approved-ribbon');
+    if (ribbon) ribbon.hidden = !on;
+  }
+
   function checkApproved() {
     try {
       const d = JSON.parse(localStorage.getItem(APPROVAL_KEY) || '');
-      if (JSON.stringify(d.bracelet) === JSON.stringify(bracelet)) {
-        $('.bracelet-panel').classList.add('is-approved');
-      }
+      setApprovedUI(JSON.stringify(d.bracelet) === JSON.stringify(bracelet));
     } catch { /* */ }
+  }
+
+  function preloadBraceletImages() {
+    const ids = [...new Set([...bracelet, ...CHARMS.slice(0, 12).map((c) => c.id)])];
+    ids.forEach((id) => {
+      const img = new Image();
+      img.src = assetUrl(getCharmImageUrl(id));
+    });
   }
 
   function setupGift() {
     const p = new URLSearchParams(location.search);
     const name = p.get('for') || 'Kasya';
     const gifter = p.get('view') === 'gifter';
+    document.title = gifter ? `${name}'s Bracelet — Charm Atelier` : `For ${name} — Charm Atelier`;
     $('#gift-message').textContent = `${name}, design your silver charm bracelet`;
     if (gifter) {
       document.body.classList.add('gifter-mode');
       $('#hero-eyebrow').textContent = 'Her approved design';
       $('#gift-message').textContent = `${name}'s bracelet design`;
       $('#hero-sub').textContent = 'Order these exact silver Italian charm links below.';
+      $('#hero-note').hidden = true;
+    } else {
+      $('#hero-sub').textContent = `${name}, every link below is a real Nomination charm photo. Tap to select, browse the library, preview, then say yes when it feels perfect.`;
+      $('#hero-note').textContent = 'With love, from Muhammad';
     }
   }
 
@@ -333,7 +350,7 @@
     selectedIndex = null;
     handlers.selectedIndex = null;
     localStorage.removeItem(APPROVAL_KEY);
-    $('.bracelet-panel').classList.remove('is-approved');
+    setApprovedUI(false);
     fullRefresh();
     updateSelectionBar();
   };
@@ -363,6 +380,7 @@
   try {
     setupGift();
     loadState();
+    preloadBraceletImages();
     renderCategories();
     refreshBracelet();
     renderLibrary();

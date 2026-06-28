@@ -1,4 +1,6 @@
 /** Real product photos — Nomination / Silvermoon Italian charm links */
+const IMAGE_VERSION = 'v3';
+
 const CHARM_IMAGE_MAP = {
   "heart-silver": "assets/charms/heart-silver.jpg",
   "heart-pink": "assets/charms/heart-pink.jpg",
@@ -37,8 +39,9 @@ function assetUrl(path) {
   const base = document.querySelector('meta[name="base-path"]')?.content || '';
   if (!path || path.startsWith('http') || path.startsWith('data:')) return path;
   const clean = path.replace(/^\//, '');
-  if (!base) return clean;
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if (isLocal) return clean;
-  return `${base.replace(/\/$/, '')}/${clean}`;
+  const withBase = (!base || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? clean
+    : `${base.replace(/\/$/, '')}/${clean}`;
+  const sep = withBase.includes('?') ? '&' : '?';
+  return `${withBase}${sep}v=${IMAGE_VERSION}`;
 }
