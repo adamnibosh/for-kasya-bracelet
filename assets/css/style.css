@@ -277,8 +277,15 @@ body {
   border: 1px solid var(--border);
   overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 60% at 50% 40%, #ffffff 0%, #e8ecf0 55%, #d0d8e0 100%);
-  box-shadow: inset 0 2px 24px rgba(107, 117, 128, 0.12);
+    radial-gradient(ellipse 80% 70% at 50% 45%, #f8fafc 0%, #e2e8f0 60%, #cbd5e1 100%);
+  box-shadow: inset 0 2px 24px rgba(107, 117, 128, 0.1);
+}
+
+.bracelet-3d-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .bracelet-3d-wrap {

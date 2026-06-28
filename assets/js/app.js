@@ -94,9 +94,9 @@
     main3d?.setSelectedIndex(selectedIndex);
   }
 
-  async function renderBracelet3D() {
+  function renderBracelet3D() {
     linkCountEl.textContent = bracelet.length;
-    if (main3d) await main3d.setBracelet(bracelet);
+    if (main3d && main3d._ready) main3d.setBracelet(bracelet);
     updateSelectionUI();
   }
 
@@ -154,8 +154,8 @@
     });
   }
 
-  async function render() {
-    await renderBracelet3D();
+  function render() {
+    renderBracelet3D();
     renderPalette();
     renderShoppingList();
     persist();
@@ -272,16 +272,15 @@
     return Promise.resolve();
   }
 
-  async function openReview() {
+  function openReview() {
     reviewModal.showModal();
     if (!review3d) {
-      review3d = new Bracelet3D($('#bracelet-3d-review'), {
-        autoRotate: true,
-        onSelect: () => {},
-      });
+      review3d = new Bracelet3D($('#bracelet-3d-review'), { autoRotate: true, onSelect: () => {} });
     }
-    setTimeout(() => review3d.resize(), 50);
-    await review3d.setBracelet(bracelet);
+    requestAnimationFrame(() => {
+      review3d.resize();
+      review3d.setBracelet(bracelet);
+    });
     $('#review-count').textContent = `${bracelet.length} links · ${new Set(bracelet).size} unique charms`;
   }
 
@@ -292,6 +291,10 @@
         selectedIndex = idx;
         updateSelectionUI();
       },
+    });
+    requestAnimationFrame(() => {
+      main3d?.resize();
+      main3d?.setBracelet(bracelet);
     });
   }
 
@@ -333,5 +336,8 @@
   loadFromUrl();
   renderCategories();
   init3D();
-  render();
+  renderPalette();
+  renderShoppingList();
+  persist();
+  checkApprovalState();
 })();
