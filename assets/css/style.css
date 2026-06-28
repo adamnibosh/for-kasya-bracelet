@@ -357,12 +357,15 @@ body {
 
 .bracelet-viewport {
   position: relative;
-  min-height: 240px;
+  min-height: 280px;
   padding: 1rem 0.5rem 0.5rem;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--linen) transparent;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.bracelet-viewport:has(.bv-stage.is-dragging-arc) {
+  cursor: grabbing;
 }
 
 .bracelet-loading {
@@ -398,7 +401,15 @@ body {
   gap: 0;
   min-width: min-content;
   padding: 1.5rem 1rem 2rem;
-  perspective: 1100px;
+  perspective: 1200px;
+  transform: rotateY(var(--bracelet-rotate, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.05s linear;
+  user-select: none;
+}
+
+.bv-stage.is-dragging-arc {
+  transition: none;
 }
 
 .bv-clasp {
@@ -429,30 +440,51 @@ body {
 }
 
 .bv-link.is-selected .bv-face {
-  box-shadow:
-    0 0 0 1px var(--gold),
-    0 20px 48px rgba(26, 24, 22, 0.14);
-  transform: scale(1.06) translateZ(16px);
+  filter: drop-shadow(0 0 0 1px var(--gold)) drop-shadow(0 20px 48px rgba(26, 24, 22, 0.18));
+  transform: scale(1.08) translateZ(20px);
 }
 
 .bv-link.is-dragging { opacity: 0.4; }
-.bv-link.drag-over .bv-face { outline: 1px dashed var(--gold); }
+.bv-link.drag-over .bv-face {
+  filter: drop-shadow(0 0 0 1px var(--gold));
+}
 
 .bv-face {
-  width: 72px;
-  height: 72px;
-  overflow: hidden;
-  background: var(--white);
-  box-shadow: var(--shadow-product);
-  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  width: 88px;
+  height: 88px;
+  overflow: visible;
+  background: transparent;
+  filter: drop-shadow(0 8px 20px rgba(26, 24, 22, 0.12));
+  transition: transform 0.4s var(--ease), filter 0.4s var(--ease);
 }
 
 .bv-face img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   pointer-events: none;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.bv-link.is-dangle .bv-face {
+  animation: dangle-sway 3.5s ease-in-out infinite;
+  transform-origin: 50% 8%;
+}
+
+.bv-link.is-dangle.is-selected .bv-face {
+  animation: dangle-sway-selected 3.5s ease-in-out infinite;
+  transform-origin: 50% 8%;
+}
+
+@keyframes dangle-sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes dangle-sway-selected {
+  0%, 100% { transform: scale(1.08) translateZ(20px) rotate(-2.5deg); }
+  50% { transform: scale(1.08) translateZ(20px) rotate(2.5deg); }
 }
 
 .bv-remove {
@@ -666,14 +698,14 @@ body {
 .letter-chip-photo {
   width: 30px;
   height: 30px;
-  overflow: hidden;
-  background: var(--ivory);
+  overflow: visible;
+  background: transparent;
 }
 
 .letter-chip-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -725,26 +757,26 @@ body {
 .charm-card-photo {
   position: relative;
   aspect-ratio: 1;
-  overflow: hidden;
-  background: var(--white);
+  overflow: visible;
+  background: transparent;
   margin-bottom: 0.85rem;
-  box-shadow: 0 1px 0 var(--hairline);
-  transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease);
+  filter: drop-shadow(0 4px 12px rgba(26, 24, 22, 0.08));
+  transition: filter 0.4s var(--ease), transform 0.4s var(--ease);
 }
 
 .charm-card:hover .charm-card-photo {
-  box-shadow: var(--shadow-product);
+  filter: drop-shadow(0 12px 28px rgba(26, 24, 22, 0.14));
   transform: translateY(-4px);
 }
 
 .charm-card.is-on-bracelet .charm-card-photo {
-  box-shadow: 0 0 0 1px var(--gold), var(--shadow-product);
+  filter: drop-shadow(0 0 0 1px var(--gold)) drop-shadow(0 12px 28px rgba(26, 24, 22, 0.12));
 }
 
 .charm-card-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -1124,7 +1156,7 @@ body.gifter-mode #review-approve { display: none; }
   .effort-steps { grid-template-columns: 1fr; }
   .hero { padding: 2.5rem 0 2rem; }
   .hero-trust { gap: 1.5rem; }
-  .bv-face { width: 60px; height: 60px; }
+  .bv-face { width: 72px; height: 72px; }
   .charm-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.25rem 0.75rem; }
   .section-head, .library-header { flex-direction: column; align-items: stretch; }
   .library-tools { align-items: stretch; }

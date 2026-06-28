@@ -1,7 +1,4 @@
-/** HD transparent charms from bracelet.zip example */
-const IMAGE_VERSION = 'v5-hd';
-
-const CHARM_IMAGE_MAP = {
+{
   "blank-silver": "assets/charms-hd/blank-silver.png",
   "bmw": "assets/charms-hd/bmw.png",
   "bow-blue": "assets/charms-hd/bow-blue.png",
@@ -26,9 +23,7 @@ const CHARM_IMAGE_MAP = {
   "letter-d": "assets/charms-hd/letter-d.png",
   "letter-e": "assets/charms-hd/letter-e.png",
   "letter-f": "assets/charms-hd/letter-f.png",
-  "letter-g": "assets/charms-hd/letter-g.png",
   "letter-h": "assets/charms-hd/letter-h.png",
-  "letter-i": "assets/charms-hd/letter-i.png",
   "letter-j": "assets/charms-hd/letter-j.png",
   "letter-k": "assets/charms-hd/letter-k.png",
   "letter-l": "assets/charms-hd/letter-l.png",
@@ -47,23 +42,8 @@ const CHARM_IMAGE_MAP = {
   "letter-y": "assets/charms-hd/letter-y.png",
   "letter-z": "assets/charms-hd/letter-z.png",
   "moon": "assets/charms-hd/moon.png",
-  "nameplate": "assets/charms-hd/nameplate.png",
   "star": "assets/charms-hd/star.png",
-};
-
-function getCharmImageUrl(charmId) {
-  return CHARM_IMAGE_MAP[charmId] || CHARM_IMAGE_MAP['blank-silver'];
-}
-
-/** Resolve path for GitHub Pages subfolder or local dev */
-function assetUrl(path) {
-  if (typeof document === 'undefined') return path;
-  const base = document.querySelector('meta[name="base-path"]')?.content || '';
-  if (!path || path.startsWith('http') || path.startsWith('data:')) return path;
-  const clean = path.replace(/^\//, '');
-  const withBase = (!base || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? clean
-    : `${base.replace(/\/$/, '')}/${clean}`;
-  const sep = withBase.includes('?') ? '&' : '?';
-  return `${withBase}${sep}v=${IMAGE_VERSION}`;
+  "letter-g": "assets/charms-hd/letter-g.png",
+  "letter-i": "assets/charms-hd/letter-i.png",
+  "nameplate": "assets/charms-hd/nameplate.png"
 }
