@@ -35,7 +35,7 @@ const BraceletView = (function () {
         <div class="bv-track" role="list" aria-label="Your bracelet">${links}</div>
         <div class="bv-clasp bv-clasp-r" aria-hidden="true"></div>
       </div>
-      <p class="bv-drag-hint">↔ Drag charms to reorder</p>`;
+      <p class="bv-drag-hint">Drag to reorder · Tap to select</p>`;
   }
 
   function bind(container, handlers) {

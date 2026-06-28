@@ -1,5 +1,5 @@
 /** Real product photos — Nomination / Silvermoon Italian charm links */
-const IMAGE_VERSION = 'v3';
+const IMAGE_VERSION = 'v4';
 
 const CHARM_IMAGE_MAP = {
   "heart-silver": "assets/charms/heart-silver.jpg",

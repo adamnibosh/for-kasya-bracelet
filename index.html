@@ -3,51 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Design your silver Italian charm bracelet — a gift from Muhammad to Kasya.">
+  <meta name="description" content="Design your sterling silver Italian charm bracelet — an exclusive gift from Muhammad to Kasya.">
   <meta name="base-path" content="/for-kasya-bracelet">
   <meta property="og:title" content="For Kasya — Charm Atelier">
-  <meta property="og:description" content="Design your silver Italian charm bracelet. Every link is a real charm photo.">
+  <meta property="og:description" content="Compose your sterling silver Italian charm bracelet with real Nomination links.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#f7f4f0">
+  <meta name="theme-color" content="#faf9f7">
   <title>For Kasya — Charm Atelier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <div class="announce">
+    <span>Sterling Silver · 9mm Italian Composable Links · Made in Italy</span>
+  </div>
+
   <div class="app">
     <header class="header">
       <div class="header-inner">
         <div class="brand">
-          <span class="brand-mark" aria-hidden="true">♥</span>
-          <div>
+          <span class="brand-monogram" aria-hidden="true">KA</span>
+          <div class="brand-text">
             <p class="brand-eyebrow">Charm Atelier</p>
             <h1 class="brand-title">For Kasya</h1>
           </div>
         </div>
         <nav class="header-actions">
-          <button type="button" class="btn btn-ghost" id="btn-review">Preview</button>
-          <button type="button" class="btn btn-ghost" id="btn-share">Share</button>
+          <button type="button" class="btn btn-text" id="btn-review">Preview</button>
+          <button type="button" class="btn btn-outline" id="btn-share">Share Design</button>
         </nav>
       </div>
     </header>
 
     <main>
       <section class="hero" id="gift-banner">
-        <div class="hero-glow" aria-hidden="true"></div>
-        <p class="hero-eyebrow" id="hero-eyebrow">A gift from Muhammad</p>
-        <h2 class="hero-title" id="gift-message">Kasya, design your silver charm bracelet</h2>
-        <p class="hero-sub" id="hero-sub">Every link is a real Nomination charm photo. Tap to select, browse the library, preview your bracelet, then say yes when it feels perfect.</p>
-        <p class="hero-note" id="hero-note">Made with love, just for you</p>
+        <div class="hero-inner">
+          <p class="hero-eyebrow" id="hero-eyebrow">A gift from Muhammad</p>
+          <h2 class="hero-title" id="gift-message">Compose your silver charm bracelet</h2>
+          <p class="hero-sub" id="hero-sub">Select from authentic Nomination-style links. Each charm is shown in true product photography — compose, preview, and approve your design.</p>
+          <p class="hero-note" id="hero-note">Crafted with devotion, exclusively for you</p>
+        </div>
+        <ul class="hero-trust" aria-label="Craftsmanship">
+          <li><span class="trust-label">Material</span><span class="trust-value">925 Sterling Silver</span></li>
+          <li><span class="trust-label">Link size</span><span class="trust-value">9mm Modular</span></li>
+          <li><span class="trust-label">Origin</span><span class="trust-value">Italian Composable</span></li>
+        </ul>
       </section>
 
       <section class="panel bracelet-panel">
-        <div class="approved-ribbon" id="approved-ribbon" hidden>♥ Approved — share your link with Muhammad</div>
-        <div class="panel-top">
+        <div class="approved-ribbon" id="approved-ribbon" hidden>
+          <span class="ribbon-mark">✦</span> Design approved — share your link with Muhammad
+        </div>
+
+        <div class="section-head">
           <div>
-            <h2 class="panel-title">Your Bracelet</h2>
-            <p class="panel-desc" id="chain-hint">Tap a charm to select · Pick from the library below to add or swap</p>
+            <p class="section-eyebrow">Your Creation</p>
+            <h2 class="panel-title">The Bracelet</h2>
+            <p class="panel-desc" id="chain-hint">Select a link, then choose from the collection below</p>
           </div>
           <div class="length-control">
             <span class="length-label">Links</span>
@@ -57,72 +71,81 @@
           </div>
         </div>
 
-        <div class="bracelet-viewport" id="bracelet-view">
-          <div class="bracelet-loading" id="bracelet-loading">
-            <span class="loading-shimmer"></span>
-            <p>Loading your bracelet…</p>
+        <div class="bracelet-stage">
+          <div class="bracelet-viewport" id="bracelet-view">
+            <div class="bracelet-loading" id="bracelet-loading">
+              <span class="loading-shimmer"></span>
+              <p>Preparing your atelier…</p>
+            </div>
           </div>
         </div>
 
         <div class="selection-bar" id="link-controls" hidden>
           <div class="selection-info">
-            <span class="selection-label">Selected</span>
+            <span class="selection-label">Selected link</span>
             <strong id="selected-charm-name"></strong>
           </div>
           <div class="selection-actions">
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-move-left">← Move</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-link">Remove</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-move-right">Move →</button>
+            <button type="button" class="btn btn-text btn-sm" id="btn-move-left">Move left</button>
+            <button type="button" class="btn btn-text btn-sm" id="btn-remove-link">Remove</button>
+            <button type="button" class="btn btn-text btn-sm" id="btn-move-right">Move right</button>
           </div>
         </div>
 
         <div class="panel-bottom">
-          <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
-          <button type="button" class="btn btn-primary" id="btn-approve">♥ This is perfect!</button>
+          <button type="button" class="btn btn-outline" id="btn-reset">Begin anew</button>
+          <button type="button" class="btn btn-primary" id="btn-approve">Approve this design</button>
         </div>
       </section>
 
       <section class="panel library-panel">
-        <div class="library-header">
+        <div class="section-head library-header">
           <div>
+            <p class="section-eyebrow">The Collection</p>
             <h2 class="panel-title">Charm Library</h2>
-            <p class="panel-desc" id="library-desc">Real Nomination-style 9mm silver links — tap to add to your bracelet</p>
+            <p class="panel-desc" id="library-desc">Authentic 9mm silver links — select to add to your bracelet</p>
           </div>
           <div class="library-tools">
-            <input type="search" class="library-search" id="charm-search" placeholder="Search charms…" autocomplete="off">
+            <input type="search" class="library-search" id="charm-search" placeholder="Search the collection…" autocomplete="off">
             <span class="library-count" id="library-count"></span>
           </div>
         </div>
 
         <div class="category-tabs" id="category-tabs" role="tablist"></div>
         <div class="letter-strip" id="letter-strip" hidden>
-          <p class="letter-strip-label">Quick letters</p>
+          <p class="letter-strip-label">Alphabet</p>
           <div class="letter-strip-grid" id="letter-strip-grid"></div>
         </div>
         <div class="charm-grid" id="charm-grid" role="listbox" aria-label="Charm library"></div>
       </section>
 
       <section class="panel summary-panel">
-        <h2 class="panel-title">Order list</h2>
+        <p class="section-eyebrow">Order Sheet</p>
+        <h2 class="panel-title">Your selection</h2>
         <p class="panel-desc">Muhammad will order these exact links for you</p>
         <ol class="shopping-list" id="shopping-list"></ol>
-        <button type="button" class="btn btn-ghost" id="btn-copy-list">Copy order list</button>
+        <button type="button" class="btn btn-outline" id="btn-copy-list">Copy order sheet</button>
       </section>
     </main>
 
-    <footer class="footer">Crafted with love · Sterling silver 9mm Italian charm bracelet</footer>
+    <footer class="footer">
+      <p class="footer-brand">Charm Atelier</p>
+      <p class="footer-tag">Sterling silver · 9mm Italian composable links · A gift of enduring elegance</p>
+    </footer>
   </div>
 
   <dialog class="modal" id="review-modal">
     <div class="modal-inner">
       <button type="button" class="modal-close" id="review-close" aria-label="Close">×</button>
-      <p class="modal-eyebrow">Your design</p>
-      <h2 class="modal-title">Silver Charm Bracelet</h2>
-      <div class="bracelet-viewport modal-viewport" id="review-view"></div>
+      <p class="modal-eyebrow">Private preview</p>
+      <h2 class="modal-title">Your silver bracelet</h2>
+      <div class="bracelet-stage modal-stage">
+        <div class="bracelet-viewport modal-viewport" id="review-view"></div>
+      </div>
       <p class="modal-meta" id="review-count"></p>
       <div class="modal-actions">
-        <button type="button" class="btn btn-primary btn-lg" id="review-approve">♥ I love this design</button>
-        <button type="button" class="btn btn-ghost" id="review-back">Keep editing</button>
+        <button type="button" class="btn btn-primary btn-lg" id="review-approve">Approve this design</button>
+        <button type="button" class="btn btn-text" id="review-back">Continue editing</button>
       </div>
     </div>
   </dialog>

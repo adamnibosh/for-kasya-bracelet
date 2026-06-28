@@ -110,9 +110,9 @@
       if (libDesc) libDesc.textContent = 'Tap any charm below to replace your selected link';
     } else {
       bar.hidden = true;
-      hint.textContent = 'Tap a charm to select · Pick from the library below to add or swap';
+      hint.textContent = 'Select a link, then choose from the collection below';
       hint.classList.remove('is-active');
-      if (libDesc) libDesc.textContent = 'Real Nomination-style 9mm silver links — tap to add to your bracelet';
+      if (libDesc) libDesc.textContent = 'Authentic 9mm sterling silver links — select to add to your bracelet';
     }
   }
 
@@ -237,7 +237,7 @@
     }
     fullRefresh();
     updateSelectionBar();
-    showToast(swap ? 'Charm swapped ✓' : 'Added to your bracelet ✓');
+    showToast(swap ? 'Link updated' : 'Added to your bracelet');
     viewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -281,7 +281,7 @@
     localStorage.setItem(APPROVAL_KEY, JSON.stringify({ bracelet: [...bracelet], at: Date.now(), url }));
     setApprovedUI(true);
     launchConfetti();
-    copyText(url).then(() => showToast('Link copied — send it to Muhammad! 💕', 5000));
+    copyText(url).then(() => showToast('Design link copied — share with Muhammad', 5000));
     if ($('#review-modal').open) $('#review-modal').close();
   }
 
@@ -319,7 +319,7 @@
       $('#hero-sub').textContent = 'Order these exact silver Italian charm links below.';
       $('#hero-note').hidden = true;
     } else {
-      $('#hero-sub').textContent = `${name}, every link below is a real Nomination charm photo. Tap to select, browse the library, preview, then say yes when it feels perfect.`;
+      $('#hero-sub').textContent = `${name}, compose your bracelet from authentic sterling silver links. Each piece is shown in true product photography — select, arrange, preview, and approve when it is perfect.`;
       $('#hero-note').textContent = 'With love, from Muhammad';
     }
   }
