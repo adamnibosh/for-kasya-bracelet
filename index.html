@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Design your perfect Italian charm bracelet — customize every link, preview your creation, and share your dream design.">
+  <meta name="description" content="Design your silver Italian charm bracelet in 3D — customize every link and preview before ordering.">
   <title>For Kasya — Italian Charm Bracelet Designer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,17 +35,8 @@
     <main class="main">
       <section class="hero-card" id="gift-banner">
         <p class="hero-eyebrow">A gift for you, from Muhammad</p>
-        <h2 id="gift-message">Kasya, design the bracelet you'd love to wear</h2>
-        <p class="hero-sub">Silver base with small color accents — just like your example. Pick letters, hearts, animals &amp; symbols, then tap "This is perfect!"</p>
-      </section>
-
-      <section class="reference-panel" id="reference-section">
-        <div class="panel-header">
-          <h2>Real examples — tap a dot to find the matching charm</h2>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-load-example">Load example board layout</button>
-        </div>
-        <p class="ref-intro">These are <strong>your actual reference photos</strong>. Each dot points to a charm from Kasya's board. The charms in the library are drawn to match — silver metal, small enamel accents, dangling pieces where shown.</p>
-        <div class="reference-guide" id="reference-guide"></div>
+        <h2 id="gift-message">Kasya, design your silver charm bracelet</h2>
+        <p class="hero-sub">Build your bracelet in 3D — pick silver links, letters, hearts and charms, then preview and approve when it feels perfect.</p>
       </section>
 
       <section class="workspace">
@@ -55,18 +46,25 @@
             <div class="length-control">
               <label for="link-count">Links</label>
               <button type="button" class="stepper-btn" id="btn-less" aria-label="Remove link">−</button>
-              <output id="link-count" for="link-slider">8</output>
+              <output id="link-count" for="link-slider">10</output>
               <button type="button" class="stepper-btn" id="btn-more" aria-label="Add link">+</button>
             </div>
           </div>
 
-          <div class="bracelet-stage" id="bracelet-stage">
-            <div class="clasp clasp-left" aria-hidden="true"></div>
-            <div class="bracelet-chain" id="bracelet-chain" role="list" aria-label="Bracelet charm links"></div>
-            <div class="clasp clasp-right" aria-hidden="true"></div>
+          <div class="bracelet-stage bracelet-stage-3d" id="bracelet-stage">
+            <div class="bracelet-3d-wrap" id="bracelet-3d-main"></div>
           </div>
 
-          <p class="hint" id="chain-hint">Click a link to swap or remove · Drag to reorder · Silver 9mm links</p>
+          <div class="link-controls" id="link-controls" hidden>
+            <span class="selected-label">Selected: <strong id="selected-charm-name"></strong></span>
+            <div class="link-controls-btns">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-move-left">← Move</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-link">Remove</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-move-right">Move →</button>
+            </div>
+          </div>
+
+          <p class="hint" id="chain-hint">Drag to rotate · Click a charm to select · Pick from library to add or swap</p>
 
           <div class="panel-actions">
             <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
@@ -81,35 +79,31 @@
             <h2>Charm Library</h2>
             <input type="search" class="search-input" id="charm-search" placeholder="Search charms…" autocomplete="off">
           </div>
-
           <div class="category-tabs" id="category-tabs" role="tablist"></div>
-
           <div class="charm-grid" id="charm-grid" role="listbox" aria-label="Available charms"></div>
         </aside>
       </section>
 
       <section class="summary-panel" id="summary-panel">
         <h2>Shopping list</h2>
-        <p class="summary-note">Order <strong>silver 9mm modular Italian charm links</strong> (Nomination / Custom Lala compatible). Each line matches exactly what you picked.</p>
+        <p class="summary-note">Order <strong>silver 9mm modular Italian charm links</strong> — each item matches your 3D design exactly.</p>
         <ol class="shopping-list" id="shopping-list"></ol>
         <button type="button" class="btn btn-ghost btn-copy-list" id="btn-copy-list">Copy list</button>
       </section>
     </main>
 
     <footer class="footer">
-      <p>Made with ♥ · Silver charm previews match Kasya's example style · Order 9mm modular links from Custom Lala or any Italian charm store.</p>
+      <p>Made with ♥ · 3D preview of sterling silver 9mm Italian charm links</p>
     </footer>
   </div>
 
-  <!-- Review overlay -->
   <dialog class="review-modal" id="review-modal" aria-labelledby="review-title">
-    <div class="review-backdrop-decoration" aria-hidden="true"></div>
-    <div class="review-content">
+    <div class="review-content review-content-3d">
       <button type="button" class="review-close" id="review-close" aria-label="Close preview">×</button>
       <p class="review-eyebrow">Your design</p>
-      <h2 id="review-title">Italian Charm Bracelet</h2>
-      <div class="review-bracelet-wrap">
-        <div class="review-bracelet" id="review-bracelet"></div>
+      <h2 id="review-title">Silver Charm Bracelet</h2>
+      <div class="review-bracelet-wrap review-bracelet-wrap-3d">
+        <div class="bracelet-3d-wrap review-3d" id="bracelet-3d-review"></div>
       </div>
       <p class="review-count" id="review-count"></p>
       <div class="review-actions">
@@ -121,13 +115,13 @@
     </div>
   </dialog>
 
-  <!-- Approval celebration -->
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-
   <div class="confetti" id="confetti" aria-hidden="true" hidden></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.min.js"></script>
   <script src="assets/js/charm-render.js"></script>
   <script src="assets/js/charms.js"></script>
+  <script src="assets/js/bracelet-3d.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

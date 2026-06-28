@@ -7,17 +7,18 @@
   let bracelet = [...DEFAULT_BRACELET];
   let selectedIndex = null;
   let activeCategory = 'letters';
-  let dragIndex = null;
+
+  let main3d = null;
+  let review3d = null;
 
   const $ = (sel) => document.querySelector(sel);
-  const chainEl = $('#bracelet-chain');
   const charmGrid = $('#charm-grid');
   const categoryTabs = $('#category-tabs');
   const linkCountEl = $('#link-count');
   const shoppingList = $('#shopping-list');
   const reviewModal = $('#review-modal');
-  const reviewBracelet = $('#review-bracelet');
   const toast = $('#toast');
+  const linkControls = $('#link-controls');
 
   function encodeDesign(ids) {
     return btoa(unescape(encodeURIComponent(JSON.stringify(ids))));
@@ -46,10 +47,7 @@
 
   function loadFromUrl() {
     const fromHash = decodeDesign(window.location.hash);
-    if (fromHash) {
-      bracelet = fromHash;
-      return true;
-    }
+    if (fromHash) { bracelet = fromHash; return true; }
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -70,141 +68,58 @@
     history.replaceState(null, '', url);
   }
 
-  function createCharmFace(charm) {
+  function createCharmThumb(charm) {
     const face = document.createElement('div');
     face.className = 'charm-face silver-link';
     CharmRender.mount(charm, face);
     return face;
   }
 
-  function renderChainLink(charmId, index, interactive) {
-    const charm = CHARM_MAP[charmId] || CHARMS[0];
-    const link = document.createElement('div');
-    link.className = 'charm-link';
-    link.dataset.index = index;
-    link.dataset.charmId = charmId;
-    link.setAttribute('role', interactive ? 'listitem' : 'presentation');
-    link.setAttribute('aria-label', `${charm.name}, position ${index + 1}`);
-    link.title = charm.hint || charm.shopLabel || charm.name;
-
-    if (interactive && selectedIndex === index) link.classList.add('selected');
-    if (charm.dangling) link.classList.add('has-dangle');
-
-    link.appendChild(createCharmFace(charm));
-
-    if (interactive) {
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'remove-btn';
-      removeBtn.setAttribute('aria-label', `Remove ${charm.name}`);
-      removeBtn.textContent = '×';
-      removeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (bracelet.length <= 1) {
-          showToast('Keep at least one charm link');
-          return;
-        }
-        bracelet.splice(index, 1);
-        selectedIndex = null;
-        render();
-      });
-      link.appendChild(removeBtn);
-
-      link.addEventListener('click', () => {
-        selectedIndex = selectedIndex === index ? null : index;
-        renderChain();
-        updateSelectionHint();
-      });
-
-      link.draggable = true;
-      link.addEventListener('dragstart', (e) => {
-        dragIndex = index;
-        link.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      link.addEventListener('dragend', () => {
-        dragIndex = null;
-        link.classList.remove('dragging');
-        document.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
-      });
-      link.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        if (dragIndex !== null && dragIndex !== index) link.classList.add('drag-over');
-      });
-      link.addEventListener('dragleave', () => link.classList.remove('drag-over'));
-      link.addEventListener('drop', (e) => {
-        e.preventDefault();
-        link.classList.remove('drag-over');
-        if (dragIndex === null || dragIndex === index) return;
-        const [moved] = bracelet.splice(dragIndex, 1);
-        bracelet.splice(index, 0, moved);
-        selectedIndex = index;
-        dragIndex = null;
-        render();
-      });
-    }
-
-    return link;
-  }
-
-  function updateSelectionHint() {
+  function updateSelectionUI() {
     const hint = $('#chain-hint');
+    const controls = linkControls;
+
     if (selectedIndex !== null) {
       const charm = CHARM_MAP[bracelet[selectedIndex]];
-      hint.innerHTML = `<strong>Link ${selectedIndex + 1} selected</strong> — pick a charm below to swap · ${charm?.hint || ''}`;
+      hint.innerHTML = `<strong>Link ${selectedIndex + 1} selected</strong> — choose a charm to swap, or use arrows to reorder`;
       hint.classList.add('hint-active');
+      controls.hidden = false;
+      $('#selected-charm-name').textContent = charm?.name || '';
     } else {
-      hint.textContent = 'Click a link to swap or remove · Drag to reorder';
+      hint.textContent = 'Drag to rotate · Click a charm to select · Pick from library to add or swap';
       hint.classList.remove('hint-active');
+      controls.hidden = true;
     }
+
+    main3d?.setSelectedIndex(selectedIndex);
   }
 
-  function renderChain() {
-    chainEl.innerHTML = '';
-    bracelet.forEach((id, i) => chainEl.appendChild(renderChainLink(id, i, true)));
+  async function renderBracelet3D() {
     linkCountEl.textContent = bracelet.length;
-    updateSelectionHint();
+    if (main3d) await main3d.setBracelet(bracelet);
+    updateSelectionUI();
   }
 
   function renderPalette() {
     const query = ($('#charm-search').value || '').toLowerCase().trim();
     charmGrid.innerHTML = '';
 
-    const filtered = CHARMS.filter((c) => {
+    CHARMS.filter((c) => {
       const matchCat = activeCategory === 'all' || c.category === activeCategory;
       const hay = `${c.name} ${c.shopLabel || ''} ${c.hint || ''} ${c.letter || ''}`.toLowerCase();
-      const matchSearch = !query || hay.includes(query);
-      return matchCat && matchSearch;
-    });
-
-    filtered.forEach((charm) => {
+      return matchCat && (!query || hay.includes(query));
+    }).forEach((charm) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'palette-charm';
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-label', charm.name);
-      btn.title = charm.hint || '';
-
-      btn.appendChild(createCharmFace(charm));
+      btn.appendChild(createCharmThumb(charm));
 
       const label = document.createElement('span');
       label.className = 'palette-charm-name';
       label.textContent = charm.name;
       btn.appendChild(label);
-
-      if (charm.ref) {
-        const badge = document.createElement('span');
-        badge.className = 'palette-ref-badge';
-        badge.textContent = 'in example';
-        btn.appendChild(badge);
-      }
-
-      if (charm.hint) {
-        const desc = document.createElement('span');
-        desc.className = 'palette-charm-hint';
-        desc.textContent = charm.hint;
-        btn.appendChild(desc);
-      }
 
       btn.addEventListener('click', () => addCharm(charm.id));
       charmGrid.appendChild(btn);
@@ -213,12 +128,10 @@
 
   function renderCategories() {
     categoryTabs.innerHTML = '';
-    [{ id: 'all', label: 'All Silver' }, ...CHARM_CATEGORIES].forEach((cat) => {
+    [{ id: 'all', label: 'All' }, ...CHARM_CATEGORIES].forEach((cat) => {
       const tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'category-tab' + (activeCategory === cat.id ? ' active' : '');
-      tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-selected', activeCategory === cat.id);
       tab.textContent = cat.label;
       tab.addEventListener('click', () => {
         activeCategory = cat.id;
@@ -232,94 +145,17 @@
   function renderShoppingList() {
     shoppingList.innerHTML = '';
     const counts = {};
-    bracelet.forEach((id) => {
-      counts[id] = (counts[id] || 0) + 1;
-    });
-
+    bracelet.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
     Object.entries(counts).forEach(([id, count]) => {
       const charm = CHARM_MAP[id];
       const li = document.createElement('li');
-      li.innerHTML = `
-        <span class="shop-qty">${count}×</span>
-        <span class="shop-detail">
-          <strong>${charm.shopLabel || charm.name}</strong>
-          ${charm.hint ? `<em>${charm.hint}</em>` : ''}
-        </span>`;
+      li.innerHTML = `<span class="shop-qty">${count}×</span><span class="shop-detail"><strong>${charm.shopLabel || charm.name}</strong></span>`;
       shoppingList.appendChild(li);
     });
   }
 
-  function renderReferenceGuide() {
-    const container = $('#reference-guide');
-    if (!container || typeof REFERENCE_GUIDE === 'undefined') return;
-    container.innerHTML = '';
-
-    REFERENCE_GUIDE.forEach((guide) => {
-      const card = document.createElement('article');
-      card.className = 'ref-card';
-
-      const fig = document.createElement('figure');
-      fig.className = 'ref-figure';
-
-      const wrap = document.createElement('div');
-      wrap.className = 'ref-image-wrap';
-
-      const img = document.createElement('img');
-      img.src = guide.image;
-      img.alt = guide.title;
-      img.loading = 'lazy';
-      wrap.appendChild(img);
-
-      guide.markers.forEach((m) => {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = 'ref-marker';
-        dot.style.left = `${m.x}%`;
-        dot.style.top = `${m.y}%`;
-        dot.title = m.label;
-        dot.setAttribute('aria-label', `Find charm: ${m.label}`);
-        dot.innerHTML = `<span class="ref-marker-label">${m.label}</span>`;
-        dot.addEventListener('click', () => highlightCharmByRef(m.ref, m.label));
-        wrap.appendChild(dot);
-      });
-
-      fig.appendChild(wrap);
-      card.innerHTML = `<h3>${guide.title}</h3><p class="ref-caption">${guide.caption}</p>`;
-      card.appendChild(fig);
-      container.appendChild(card);
-    });
-  }
-
-  function highlightCharmByRef(refId, label) {
-    const charm = CHARMS.find((c) => c.ref === refId);
-    if (charm) {
-      activeCategory = charm.category;
-      renderCategories();
-      renderPalette();
-      showToast(`Look for "${charm.name}" in the library — matches: ${label}`);
-      $('#charm-search').value = '';
-      document.querySelector('.palette-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => {
-        const match = document.querySelector(`.palette-charm[aria-label="${charm.name}"]`);
-        match?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        match?.classList.add('highlight-flash');
-        setTimeout(() => match?.classList.remove('highlight-flash'), 2000);
-      }, 400);
-    } else {
-      showToast(label);
-    }
-  }
-
-  function renderReview() {
-    reviewBracelet.innerHTML = '';
-    bracelet.forEach((id, i) => reviewBracelet.appendChild(renderChainLink(id, i, false)));
-    $('#review-count').textContent = `${bracelet.length} silver charm links · ${Object.keys(
-      bracelet.reduce((a, id) => ({ ...a, [id]: 1 }), {})
-    ).length} unique designs`;
-  }
-
-  function render() {
-    renderChain();
+  async function render() {
+    await renderBracelet3D();
     renderPalette();
     renderShoppingList();
     persist();
@@ -335,7 +171,24 @@
       bracelet.push(charmId);
     }
     render();
-    showToast(swapped ? 'Charm swapped' : 'Charm added to bracelet');
+    showToast(swapped ? 'Charm swapped' : 'Charm added');
+  }
+
+  function moveLink(dir) {
+    if (selectedIndex === null) return;
+    const next = selectedIndex + dir;
+    if (next < 0 || next >= bracelet.length) return;
+    [bracelet[selectedIndex], bracelet[next]] = [bracelet[next], bracelet[selectedIndex]];
+    selectedIndex = next;
+    render();
+  }
+
+  function removeSelected() {
+    if (selectedIndex === null) return;
+    if (bracelet.length <= 1) { showToast('Keep at least one link'); return; }
+    bracelet.splice(selectedIndex, 1);
+    selectedIndex = null;
+    render();
   }
 
   function showToast(message, duration = 2800) {
@@ -353,42 +206,31 @@
     const container = $('#confetti');
     container.hidden = false;
     container.innerHTML = '';
-    const colors = ['#c5cdd6', '#e8a0b4', '#64b5f6', '#f4f6f8', '#a67c6d'];
-    for (let i = 0; i < 60; i++) {
+    const colors = ['#c5cdd6', '#e8a0b4', '#64b5f6', '#f4f6f8'];
+    for (let i = 0; i < 50; i++) {
       const piece = document.createElement('div');
       piece.className = 'confetti-piece';
       piece.style.left = `${Math.random() * 100}%`;
       piece.style.background = colors[Math.floor(Math.random() * colors.length)];
       piece.style.animationDuration = `${1.5 + Math.random() * 2}s`;
-      piece.style.animationDelay = `${Math.random() * 0.5}s`;
-      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
       container.appendChild(piece);
     }
-    setTimeout(() => {
-      container.hidden = true;
-      container.innerHTML = '';
-    }, 4000);
+    setTimeout(() => { container.hidden = true; container.innerHTML = ''; }, 4000);
   }
 
   function approveDesign() {
     const shareUrl = getShareUrl();
-    const approval = { bracelet: [...bracelet], approvedAt: new Date().toISOString(), shareUrl };
-    localStorage.setItem(APPROVAL_KEY, JSON.stringify(approval));
+    localStorage.setItem(APPROVAL_KEY, JSON.stringify({ bracelet: [...bracelet], approvedAt: new Date().toISOString(), shareUrl }));
     document.querySelector('.bracelet-panel').classList.add('approved');
-
     let badge = document.querySelector('.approved-badge');
     if (!badge) {
       badge = document.createElement('div');
       badge.className = 'approved-badge';
       document.querySelector('.bracelet-panel .panel-header').prepend(badge);
     }
-    badge.innerHTML = '♥ Approved! Send him the share link so he can order it.';
-
+    badge.innerHTML = '♥ Approved — share the link with Muhammad';
     launchConfetti();
-    copyText(shareUrl).then(() => {
-      showToast('Link copied — send it to Muhammad so he can order your bracelet! 💕', 4500);
-    });
-
+    copyText(shareUrl).then(() => showToast('Link copied! Send it to Muhammad 💕', 4500));
     if (reviewModal.open) reviewModal.close();
   }
 
@@ -405,18 +247,17 @@
 
   function setupGiftMode() {
     const params = new URLSearchParams(window.location.search);
-    const name = params.get('for');
     const gifter = params.get('view') === 'gifter';
-    const herName = name || 'Kasya';
+    const herName = params.get('for') || 'Kasya';
 
-    $('#gift-message').textContent = `${herName}, design your silver Italian charm bracelet`;
-    $('.hero-sub').textContent = 'Silver base with small color accents — just like your example. Pick letters, hearts, animals & symbols, then tap "This is perfect!"';
+    $('#gift-message').textContent = `${herName}, design your silver charm bracelet`;
+    $('.hero-sub').textContent = 'Build your bracelet in 3D — pick silver links, letters, hearts and charms, then preview and approve when it feels perfect.';
 
     if (gifter) {
       document.body.classList.add('gifter-mode');
-      $('.hero-eyebrow').textContent = 'Her approved design';
-      $('#gift-message').textContent = `Here is the silver bracelet ${herName} designed`;
-      $('.hero-sub').textContent = 'Order these exact 9mm silver Italian charm links from the shopping list below.';
+      $('.hero-eyebrow').textContent = 'Approved design';
+      $('#gift-message').textContent = `${herName}'s bracelet design`;
+      $('.hero-sub').textContent = 'Order these 9mm silver Italian charm links from the list below.';
     }
   }
 
@@ -424,8 +265,6 @@
     if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
@@ -433,15 +272,37 @@
     return Promise.resolve();
   }
 
+  async function openReview() {
+    reviewModal.showModal();
+    if (!review3d) {
+      review3d = new Bracelet3D($('#bracelet-3d-review'), {
+        autoRotate: true,
+        onSelect: () => {},
+      });
+    }
+    setTimeout(() => review3d.resize(), 50);
+    await review3d.setBracelet(bracelet);
+    $('#review-count').textContent = `${bracelet.length} links · ${new Set(bracelet).size} unique charms`;
+  }
+
+  function init3D() {
+    main3d = new Bracelet3D($('#bracelet-3d-main'), {
+      autoRotate: true,
+      onSelect: (idx) => {
+        selectedIndex = idx;
+        updateSelectionUI();
+      },
+    });
+  }
+
   $('#btn-more').addEventListener('click', () => { bracelet.push('blank-silver'); render(); });
   $('#btn-less').addEventListener('click', () => {
-    if (bracelet.length <= 1) { showToast('Keep at least one charm link'); return; }
+    if (bracelet.length <= 1) { showToast('Keep at least one link'); return; }
     bracelet.pop();
     render();
   });
-
   $('#btn-reset').addEventListener('click', () => {
-    if (!confirm('Start over with the default KASYA silver bracelet?')) return;
+    if (!confirm('Start over?')) return;
     bracelet = [...DEFAULT_BRACELET];
     selectedIndex = null;
     localStorage.removeItem(APPROVAL_KEY);
@@ -449,47 +310,28 @@
     document.querySelector('.approved-badge')?.remove();
     render();
   });
-
+  $('#btn-move-left').addEventListener('click', () => moveLink(-1));
+  $('#btn-move-right').addEventListener('click', () => moveLink(1));
+  $('#btn-remove-link').addEventListener('click', removeSelected);
   $('#btn-approve').addEventListener('click', approveDesign);
   $('#review-approve').addEventListener('click', approveDesign);
-  $('#btn-review').addEventListener('click', () => { renderReview(); reviewModal.showModal(); });
+  $('#btn-review').addEventListener('click', openReview);
   $('#review-close').addEventListener('click', () => reviewModal.close());
   $('#review-back').addEventListener('click', () => reviewModal.close());
   reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.close(); });
-
-  $('#btn-share').addEventListener('click', () => {
-    copyText(getShareUrl()).then(() => showToast('Link copied — send it to him!'));
-  });
-
+  $('#btn-share').addEventListener('click', () => copyText(getShareUrl()).then(() => showToast('Link copied!')));
   $('#btn-copy-list').addEventListener('click', () => {
-    const lines = ['Silver Italian Charm Bracelet — Shopping List', `Total links: ${bracelet.length}`, ''];
+    const lines = ['Silver Italian Charm Bracelet', `Links: ${bracelet.length}`, ''];
     const counts = {};
     bracelet.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
-    Object.entries(counts).forEach(([id, count]) => {
-      const c = CHARM_MAP[id];
-      lines.push(`${count}× ${c.shopLabel || c.name}`);
-    });
-    lines.push('', 'Style: Silver 9mm modular links (Nomination-compatible)', 'Reference: Custom Lala / Italian charm bracelet');
+    Object.entries(counts).forEach(([id, c]) => lines.push(`${c}× ${CHARM_MAP[id].shopLabel || CHARM_MAP[id].name}`));
     copyText(lines.join('\n')).then(() => showToast('Shopping list copied'));
   });
-
   $('#charm-search').addEventListener('input', renderPalette);
-
-  $('#btn-load-example').addEventListener('click', () => {
-    bracelet = [
-      'heart-magnetic', 'kitten', 'checkered-red', 'cherry',
-      'bmw', 'letter-a', 'letter-m', 'butterfly', 'bow-blue',
-      'jellyfish', 'enamel-blue', 'cat-black',
-    ];
-    selectedIndex = null;
-    render();
-    showToast('Loaded charms from your example board!');
-    document.querySelector('.bracelet-panel')?.scrollIntoView({ behavior: 'smooth' });
-  });
 
   setupGiftMode();
   loadFromUrl();
   renderCategories();
-  renderReferenceGuide();
+  init3D();
   render();
 })();

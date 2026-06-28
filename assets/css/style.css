@@ -212,8 +212,7 @@ body {
 
 .bracelet-panel,
 .palette-panel,
-.summary-panel,
-.reference-panel {
+.summary-panel {
   background: var(--bg-card);
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -269,39 +268,67 @@ body {
   color: var(--text);
 }
 
-/* Bracelet stage */
-.bracelet-stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 2rem 1rem;
-  background:
-    linear-gradient(180deg, var(--bg-warm) 0%, #fff 50%, var(--bg-warm) 100%);
+/* 3D Bracelet stage */
+.bracelet-stage-3d {
+  position: relative;
+  padding: 0;
+  min-height: 340px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  overflow-x: auto;
-  min-height: 120px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, #ffffff 0%, #e8ecf0 55%, #d0d8e0 100%);
+  box-shadow: inset 0 2px 24px rgba(107, 117, 128, 0.12);
 }
 
-.clasp {
-  flex-shrink: 0;
-  width: 14px;
-  height: 28px;
-  background: linear-gradient(90deg, #6b7580, #c5cdd6, #f4f6f8, #c5cdd6);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+.bracelet-3d-wrap {
+  width: 100%;
+  height: 340px;
+  position: relative;
 }
 
-.clasp-left { border-radius: 6px 2px 2px 6px; }
-.clasp-right { border-radius: 2px 6px 6px 2px; }
+.bracelet-3d-wrap.review-3d {
+  height: 300px;
+}
 
-.bracelet-chain {
+.bracelet-3d-canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.bracelet-3d-canvas:active {
+  cursor: grabbing;
+}
+
+.link-controls {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 0;
-  padding: 0.25rem 0;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-warm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.selected-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.selected-label strong {
+  color: var(--text);
+}
+
+.link-controls-btns {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 /* Charm link */
@@ -524,27 +551,7 @@ body {
   overflow: hidden;
 }
 
-.palette-ref-badge {
-  font-size: 0.55rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #1565c0;
-  background: #e3f2fd;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
 
-.palette-charm.highlight-flash {
-  animation: flash-highlight 2s ease;
-  border-color: #1565c0;
-  background: #e3f2fd;
-}
-
-@keyframes flash-highlight {
-  0%, 100% { box-shadow: none; }
-  30% { box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.35); }
-}
 
 /* Summary */
 .summary-panel {
@@ -677,25 +684,16 @@ body {
   font-style: italic;
 }
 
-.review-bracelet-wrap {
-  padding: 1.5rem;
-  background: #fff;
+.review-bracelet-wrap-3d {
+  padding: 0;
+  background: radial-gradient(ellipse at center, #fff 0%, #e8ecf0 100%);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  overflow-x: auto;
+  overflow: hidden;
 }
 
-.review-bracelet {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  min-height: 64px;
-}
-
-.review-bracelet .charm-link {
-  --charm-size: 58px;
-  cursor: default;
+.review-content-3d {
+  width: min(640px, 94vw);
 }
 
 .review-count {
@@ -786,91 +784,3 @@ body.gifter-mode #review-approve {
   display: none;
 }
 
-/* Reference gallery */
-.reference-panel {
-  margin-bottom: 1.25rem;
-}
-
-.ref-intro {
-  margin: 0 0 1rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.reference-guide {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.ref-card h3 {
-  margin: 0 0 0.35rem;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-}
-
-.ref-caption {
-  margin: 0 0 0.75rem;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.ref-figure { margin: 0; }
-
-.ref-image-wrap {
-  position: relative;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  border: 2px solid var(--silver-dark);
-  background: #1a1a22;
-  line-height: 0;
-}
-
-.ref-image-wrap img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.ref-marker {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background: #1565c0;
-  cursor: pointer;
-  padding: 0;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  transition: transform var(--transition), background var(--transition);
-}
-
-.ref-marker:hover {
-  transform: translate(-50%, -50%) scale(1.35);
-  background: #42a5f5;
-}
-
-.ref-marker-label {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 6px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 0.62rem;
-  font-family: var(--font-body);
-  background: rgba(255,255,255,0.95);
-  color: #1a1a22;
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition);
-  box-shadow: var(--shadow);
-}
-
-.ref-marker:hover .ref-marker-label {
-  opacity: 1;
-}
