@@ -69,10 +69,16 @@
   }
 
   function createCharmThumb(charm) {
-    const face = document.createElement('div');
-    face.className = 'charm-face silver-link';
-    CharmRender.mount(charm, face);
-    return face;
+    const wrap = document.createElement('div');
+    wrap.className = 'charm-photo-wrap';
+    const img = document.createElement('img');
+    img.src = getCharmImageUrl(charm.id);
+    img.alt = charm.name;
+    img.loading = 'lazy';
+    img.width = 88;
+    img.height = 88;
+    wrap.appendChild(img);
+    return wrap;
   }
 
   function updateSelectionUI() {

@@ -498,9 +498,9 @@ body {
 
 .charm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0.5rem;
-  max-height: 520px;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 0.65rem;
+  max-height: 560px;
   overflow-y: auto;
   padding-right: 0.25rem;
 }
@@ -532,13 +532,32 @@ body {
   outline-offset: 2px;
 }
 
-.palette-charm .charm-face {
-  width: 44px;
-  height: 44px;
-  font-size: 1.1rem;
+.charm-photo-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  border: 1px solid #c5cdd6;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.palette-charm .charm-face.small-text { font-size: 0.48rem; }
+.charm-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition);
+}
+
+.palette-charm:hover .charm-photo-wrap img {
+  transform: scale(1.06);
+}
 
 .palette-charm-name {
   font-size: 0.68rem;
