@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Charm Atelier">
+  <rect width="64" height="64" fill="#faf9f7"/>
+  <rect x="6" y="6" width="52" height="52" fill="none" stroke="#1a1816" stroke-width="2"/>
+  <text x="32" y="40" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" font-weight="500" fill="#1a1816" letter-spacing="1">KA</text>
+  <path d="M32 14 C28 18 24 18 24 22 C24 26 32 30 32 30 C32 30 40 26 40 22 C40 18 36 18 32 14Z" fill="none" stroke="#9a7b52" stroke-width="1.2"/>
+</svg>
