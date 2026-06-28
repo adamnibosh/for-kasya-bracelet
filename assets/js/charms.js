@@ -4,10 +4,16 @@ const CHARM_CATEGORIES = [
   { id: 'love', label: 'Hearts & Love', icon: '♥' },
   { id: 'animals', label: 'Animals', icon: '🐱' },
   { id: 'symbols', label: 'Symbols & Patterns', icon: '✦' },
+  { id: 'dangles', label: 'Dangles', icon: '◇' },
+  { id: 'couples', label: 'Couples', icon: '∞' },
+  { id: 'magnetic', label: 'Magnetic', icon: '⊕' },
+  { id: 'keychains', label: 'Keychains', icon: '🔑' },
+  { id: 'pop', label: 'Pop Culture', icon: '★' },
   { id: 'silver', label: 'Silver Basics', icon: '◻' },
+  { id: 'collection', label: 'Full Collection', icon: '✦' },
 ];
 
-const CHARMS = [
+const _BASE_CHARMS = [
   ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => ({
     id: `letter-${letter.toLowerCase()}`,
     name: `Silver Letter ${letter}`,
@@ -15,7 +21,7 @@ const CHARMS = [
     category: 'letters',
     render: 'letter',
     letter,
-    hint: 'Raised sterling silver letter on brushed silver base.',
+    hint: 'Sterling silver letter charm from the collection.',
   })),
 
   { id: 'heart-silver', name: 'Silver Heart', shopLabel: '9mm Silver Outline Heart Italian charm link', category: 'love', render: 'heart-silver', hint: 'Classic brushed silver heart outline.' },
@@ -43,6 +49,8 @@ const CHARMS = [
   { id: 'blank-silver', name: 'Plain Silver Spacer', shopLabel: '9mm Plain Silver Italian charm link', category: 'silver', render: 'blank', hint: 'Brushed silver spacer link.' },
   { id: 'nameplate', name: 'Custom Name Plate', shopLabel: '9mm Custom Name Plate Italian charm link', category: 'silver', render: 'nameplate', hint: 'Engravable silver name plate link.' },
 ];
+
+const CHARMS = [..._BASE_CHARMS, ...ZIP_CHARMS];
 
 const CHARM_MAP = Object.fromEntries(CHARMS.map((c) => [c.id, c]));
 
