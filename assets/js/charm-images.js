@@ -1,5 +1,5 @@
 /** All bracelet.zip charms — transparent HD */
-const IMAGE_VERSION = 'v7-full-zip';
+const IMAGE_VERSION = 'v7-gi-fix';
 
 const CHARM_IMAGE_MAP = {
   "anchor": "assets/charms-hd/anchor.png",

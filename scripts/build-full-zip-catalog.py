@@ -23,7 +23,7 @@ spec.loader.exec_module(proc)
 LETTER_STEMS = {
     "letter-a": "54ebf031b94a", "letter-b": "88c2ef73fb2e", "letter-c": "175346fb2a8e",
     "letter-d": "e74d45d0b681", "letter-e": "bbe80f9e86ef", "letter-f": "7f4312061414",
-    "letter-g": "269c37e0285e", "letter-h": "b2c68fa5d6a7", "letter-i": "3c7711486187",
+    "letter-h": "b2c68fa5d6a7",
     "letter-j": "6cf276e45154", "letter-k": "6e135abe45ef", "letter-l": "d6edc9765a68",
     "letter-m": "b77a8f3f81ca", "letter-n": "69dd56fac88e", "letter-o": "180e69a90746",
     "letter-p": "13a6cec624e5", "letter-q": "5bb959af1c8d", "letter-r": "cc4920d49832",
@@ -56,6 +56,9 @@ CATALOG_STEMS = {
     "star": "639b7db428bb",
 }
 
+# G and I not in zip as letter charms — use Nomination silver photos
+FROM_OLD_JPG = ["letter-g", "letter-i"]
+
 # Extra zip charms — stem -> metadata
 EXTRA_STEMS: dict[str, dict] = {
     "0cfcbed019c2": {"id": "leopard-star", "name": "Leopard Star", "category": "symbols", "hint": "Red enamel with leopard-print star."},
@@ -68,6 +71,8 @@ EXTRA_STEMS: dict[str, dict] = {
     "cc88b4ef5ec5": {"id": "bandaid-heart", "name": "Bandaid Heart", "category": "love", "hint": "Red enamel with bandaid and heart."},
     "1bb9b5ed0f22": {"id": "bone-link", "name": "Bone Link", "category": "symbols", "hint": "Silver link with bone silhouette."},
     "06f00d131b33": {"id": "paw-print", "name": "Paw Print", "category": "animals", "hint": "Animal paw print charm."},
+    "269c37e0285e": {"id": "pink-red-grid", "name": "Pink Red Grid", "category": "symbols", "hint": "Red and pink checker grid enamel."},
+    "3c7711486187": {"id": "sunburst-heart", "name": "Sunburst Heart", "category": "love", "hint": "Pink sunburst with glossy heart."},
     "292344e22778": {"id": "heart-web-red", "name": "Red Heart Web", "category": "love", "hint": "Red heart spiderweb design."},
     "0cf97b08843d": {"id": "letter-c-gold", "name": "Gold Letter C", "category": "letters", "letter": "C", "hint": "Gold-accent letter C variant."},
     "63a554ffe48d": {"id": "rose-heart", "name": "Rose Gold Heart", "category": "love", "hint": "Rose gold heart charm link."},
@@ -133,6 +138,19 @@ def find_best_source(stem: str) -> Path | None:
     return max(matches, key=lambda p: max(Image.open(p).size))
 
 
+OLD = ROOT / "assets" / "charms"
+
+
+def process_old_jpg(charm_id: str) -> Image.Image:
+    path = OLD / f"{charm_id}.jpg"
+    im = Image.open(path).convert("RGBA")
+    white = Image.new("RGBA", im.size, (255, 255, 255, 255))
+    white.paste(im, (0, 0))
+    im = proc.remove_white_bg(white)
+    im = proc.enhance(im)
+    return proc.to_square_canvas(im, 512)
+
+
 def process_to_png(path: Path, out: Path) -> None:
     im = Image.open(path)
     im = proc.remove_white_bg(im)
@@ -175,6 +193,13 @@ def main() -> None:
         image_map[charm_id] = f"assets/charms-hd/{charm_id}.png"
         used_stems.add(stem)
         print(f"{charm_id} <- {stem}")
+
+    for charm_id in FROM_OLD_JPG:
+        im = process_old_jpg(charm_id)
+        out = OUT / f"{charm_id}.png"
+        im.save(out, "PNG", optimize=True)
+        image_map[charm_id] = f"assets/charms-hd/{charm_id}.png"
+        print(f"{charm_id} <- nomination jpg")
 
     # Named extras
     auto_idx = 1
