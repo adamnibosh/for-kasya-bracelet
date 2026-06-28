@@ -34,8 +34,8 @@ class Bracelet3D {
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
-    this.camera.position.set(0, 3.2, 8.5);
-    this.camera.lookAt(0, 0.2, 0);
+    this.camera.position.set(0, 4.5, 9);
+    this.camera.lookAt(0, 0, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(w, h);
@@ -110,40 +110,32 @@ class Bracelet3D {
     this.linkMeshes = [];
 
     const n = charmIds.length;
-    const arc = Math.min(Math.PI * 1.35, Math.max(0.9, n * 0.14));
-    const radius = Math.max(2.8, (n * 0.42) / Math.max(arc, 0.5));
-    const start = Math.PI * 0.5 - arc / 2;
+    const linkSize = 0.82;
+    const radius = n <= 1
+      ? 2.6
+      : Math.max(1.75, (linkSize / (2 * Math.sin(Math.PI / n))) * 1.32);
+    const tiltZ = 0.62;
 
     charmIds.forEach((id, i) => {
       const charm = CHARM_MAP[id] || CHARMS[0];
       const linkGroup = this._createLink(charm, i);
-      const t = n === 1 ? 0.5 : i / (n - 1);
-      const angle = start + t * arc;
+      const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
 
       linkGroup.position.set(
         Math.cos(angle) * radius,
-        Math.sin(t * Math.PI) * 0.15,
-        Math.sin(angle) * radius * 0.55
+        0,
+        Math.sin(angle) * radius * tiltZ
       );
-      linkGroup.rotation.y = -angle;
-      linkGroup.rotation.x = 0.15;
-      linkGroup.rotation.z = Math.sin(angle) * 0.04;
+      linkGroup.rotation.y = -angle - Math.PI / 2;
+      linkGroup.rotation.x = 0.12;
+      linkGroup.rotation.z = 0;
 
       this.braceletGroup.add(linkGroup);
       this.linkMeshes.push(linkGroup);
     });
 
-    const claspL = this._createClasp();
-    const claspR = this._createClasp(true);
-    const aL = start - 0.05;
-    const aR = start + arc + 0.05;
-    claspL.position.set(Math.cos(aL) * radius, 0, Math.sin(aL) * radius * 0.55);
-    claspL.rotation.y = -aL;
-    claspR.position.set(Math.cos(aR) * radius, 0, Math.sin(aR) * radius * 0.55);
-    claspR.rotation.y = -aR;
-    this.braceletGroup.add(claspL, claspR);
-
-    this.braceletGroup.scale.setScalar(1.28);
+    this.braceletGroup.rotation.x = 0.22;
+    this.braceletGroup.scale.setScalar(1.22);
     this.setSelectedIndex(this.selectedIndex);
   }
 
