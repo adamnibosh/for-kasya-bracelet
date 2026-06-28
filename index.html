@@ -18,7 +18,7 @@
           <span class="brand-icon">✦</span>
           <div>
             <h1>Charm Atelier</h1>
-            <p class="tagline">Italian charm bracelet designer</p>
+            <p class="tagline">Silver Italian charm bracelet · 9mm modular links</p>
           </div>
         </div>
         <nav class="header-actions">
@@ -36,7 +36,16 @@
       <section class="hero-card" id="gift-banner">
         <p class="hero-eyebrow">A gift for you, from Muhammad</p>
         <h2 id="gift-message">Kasya, design the bracelet you'd love to wear</h2>
-        <p class="hero-sub">Pick each charm link, preview your creation, and tap "This is perfect!" when you love it — Muhammad will order it for you.</p>
+        <p class="hero-sub">Silver base with small color accents — just like your example. Pick letters, hearts, animals &amp; symbols, then tap "This is perfect!"</p>
+      </section>
+
+      <section class="reference-panel" id="reference-section">
+        <div class="panel-header">
+          <h2>Real examples — tap a dot to find the matching charm</h2>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-load-example">Load example board layout</button>
+        </div>
+        <p class="ref-intro">These are <strong>your actual reference photos</strong>. Each dot points to a charm from Kasya's board. The charms in the library are drawn to match — silver metal, small enamel accents, dangling pieces where shown.</p>
+        <div class="reference-guide" id="reference-guide"></div>
       </section>
 
       <section class="workspace">
@@ -57,7 +66,7 @@
             <div class="clasp clasp-right" aria-hidden="true"></div>
           </div>
 
-          <p class="hint" id="chain-hint">Click a link to swap or remove · Drag to reorder</p>
+          <p class="hint" id="chain-hint">Click a link to swap or remove · Drag to reorder · Silver 9mm links</p>
 
           <div class="panel-actions">
             <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
@@ -81,14 +90,14 @@
 
       <section class="summary-panel" id="summary-panel">
         <h2>Shopping list</h2>
-        <p class="summary-note">Use this list when ordering Nomination-style 9mm Italian charm links.</p>
+        <p class="summary-note">Order <strong>silver 9mm modular Italian charm links</strong> (Nomination / Custom Lala compatible). Each line matches exactly what you picked.</p>
         <ol class="shopping-list" id="shopping-list"></ol>
         <button type="button" class="btn btn-ghost btn-copy-list" id="btn-copy-list">Copy list</button>
       </section>
     </main>
 
     <footer class="footer">
-      <p>Made with ♥ · Charm links shown are for preview — order matching 9mm modular links from your favorite jeweler.</p>
+      <p>Made with ♥ · Silver charm previews match Kasya's example style · Order 9mm modular links from Custom Lala or any Italian charm store.</p>
     </footer>
   </div>
 
@@ -117,6 +126,7 @@
 
   <div class="confetti" id="confetti" aria-hidden="true" hidden></div>
 
+  <script src="assets/js/charm-render.js"></script>
   <script src="assets/js/charms.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

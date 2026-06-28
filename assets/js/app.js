@@ -6,7 +6,7 @@
 
   let bracelet = [...DEFAULT_BRACELET];
   let selectedIndex = null;
-  let activeCategory = 'love';
+  let activeCategory = 'letters';
   let dragIndex = null;
 
   const $ = (sel) => document.querySelector(sel);
@@ -18,7 +18,6 @@
   const reviewModal = $('#review-modal');
   const reviewBracelet = $('#review-bracelet');
   const toast = $('#toast');
-  const giftBanner = $('#gift-banner');
 
   function encodeDesign(ids) {
     return btoa(unescape(encodeURIComponent(JSON.stringify(ids))));
@@ -71,14 +70,10 @@
     history.replaceState(null, '', url);
   }
 
-  function createCharmFace(charm, sizeClass) {
+  function createCharmFace(charm) {
     const face = document.createElement('div');
-    face.className = 'charm-face';
-    if (charm.small) face.classList.add('small-text');
-    if (charm.blank) face.classList.add('blank');
-    face.style.background = charm.bg;
-    face.style.color = charm.fg;
-    if (charm.glyph) face.textContent = charm.glyph;
+    face.className = 'charm-face silver-link';
+    CharmRender.mount(charm, face);
     return face;
   }
 
@@ -87,10 +82,13 @@
     const link = document.createElement('div');
     link.className = 'charm-link';
     link.dataset.index = index;
+    link.dataset.charmId = charmId;
     link.setAttribute('role', interactive ? 'listitem' : 'presentation');
     link.setAttribute('aria-label', `${charm.name}, position ${index + 1}`);
+    link.title = charm.hint || charm.shopLabel || charm.name;
 
     if (interactive && selectedIndex === index) link.classList.add('selected');
+    if (charm.dangling) link.classList.add('has-dangle');
 
     link.appendChild(createCharmFace(charm));
 
@@ -115,6 +113,7 @@
       link.addEventListener('click', () => {
         selectedIndex = selectedIndex === index ? null : index;
         renderChain();
+        updateSelectionHint();
       });
 
       link.draggable = true;
@@ -148,10 +147,23 @@
     return link;
   }
 
+  function updateSelectionHint() {
+    const hint = $('#chain-hint');
+    if (selectedIndex !== null) {
+      const charm = CHARM_MAP[bracelet[selectedIndex]];
+      hint.innerHTML = `<strong>Link ${selectedIndex + 1} selected</strong> — pick a charm below to swap · ${charm?.hint || ''}`;
+      hint.classList.add('hint-active');
+    } else {
+      hint.textContent = 'Click a link to swap or remove · Drag to reorder';
+      hint.classList.remove('hint-active');
+    }
+  }
+
   function renderChain() {
     chainEl.innerHTML = '';
     bracelet.forEach((id, i) => chainEl.appendChild(renderChainLink(id, i, true)));
     linkCountEl.textContent = bracelet.length;
+    updateSelectionHint();
   }
 
   function renderPalette() {
@@ -160,7 +172,8 @@
 
     const filtered = CHARMS.filter((c) => {
       const matchCat = activeCategory === 'all' || c.category === activeCategory;
-      const matchSearch = !query || c.name.toLowerCase().includes(query) || c.glyph.toLowerCase().includes(query);
+      const hay = `${c.name} ${c.shopLabel || ''} ${c.hint || ''} ${c.letter || ''}`.toLowerCase();
+      const matchSearch = !query || hay.includes(query);
       return matchCat && matchSearch;
     });
 
@@ -170,6 +183,7 @@
       btn.className = 'palette-charm';
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-label', charm.name);
+      btn.title = charm.hint || '';
 
       btn.appendChild(createCharmFace(charm));
 
@@ -178,6 +192,20 @@
       label.textContent = charm.name;
       btn.appendChild(label);
 
+      if (charm.ref) {
+        const badge = document.createElement('span');
+        badge.className = 'palette-ref-badge';
+        badge.textContent = 'in example';
+        btn.appendChild(badge);
+      }
+
+      if (charm.hint) {
+        const desc = document.createElement('span');
+        desc.className = 'palette-charm-hint';
+        desc.textContent = charm.hint;
+        btn.appendChild(desc);
+      }
+
       btn.addEventListener('click', () => addCharm(charm.id));
       charmGrid.appendChild(btn);
     });
@@ -185,7 +213,7 @@
 
   function renderCategories() {
     categoryTabs.innerHTML = '';
-    [{ id: 'all', label: 'All', icon: '✦' }, ...CHARM_CATEGORIES].forEach((cat) => {
+    [{ id: 'all', label: 'All Silver' }, ...CHARM_CATEGORIES].forEach((cat) => {
       const tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'category-tab' + (activeCategory === cat.id ? ' active' : '');
@@ -211,15 +239,81 @@
     Object.entries(counts).forEach(([id, count]) => {
       const charm = CHARM_MAP[id];
       const li = document.createElement('li');
-      li.innerHTML = `${count}× <strong>${charm.name}</strong> <span>(${id})</span>`;
+      li.innerHTML = `
+        <span class="shop-qty">${count}×</span>
+        <span class="shop-detail">
+          <strong>${charm.shopLabel || charm.name}</strong>
+          ${charm.hint ? `<em>${charm.hint}</em>` : ''}
+        </span>`;
       shoppingList.appendChild(li);
     });
+  }
+
+  function renderReferenceGuide() {
+    const container = $('#reference-guide');
+    if (!container || typeof REFERENCE_GUIDE === 'undefined') return;
+    container.innerHTML = '';
+
+    REFERENCE_GUIDE.forEach((guide) => {
+      const card = document.createElement('article');
+      card.className = 'ref-card';
+
+      const fig = document.createElement('figure');
+      fig.className = 'ref-figure';
+
+      const wrap = document.createElement('div');
+      wrap.className = 'ref-image-wrap';
+
+      const img = document.createElement('img');
+      img.src = guide.image;
+      img.alt = guide.title;
+      img.loading = 'lazy';
+      wrap.appendChild(img);
+
+      guide.markers.forEach((m) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'ref-marker';
+        dot.style.left = `${m.x}%`;
+        dot.style.top = `${m.y}%`;
+        dot.title = m.label;
+        dot.setAttribute('aria-label', `Find charm: ${m.label}`);
+        dot.innerHTML = `<span class="ref-marker-label">${m.label}</span>`;
+        dot.addEventListener('click', () => highlightCharmByRef(m.ref, m.label));
+        wrap.appendChild(dot);
+      });
+
+      fig.appendChild(wrap);
+      card.innerHTML = `<h3>${guide.title}</h3><p class="ref-caption">${guide.caption}</p>`;
+      card.appendChild(fig);
+      container.appendChild(card);
+    });
+  }
+
+  function highlightCharmByRef(refId, label) {
+    const charm = CHARMS.find((c) => c.ref === refId);
+    if (charm) {
+      activeCategory = charm.category;
+      renderCategories();
+      renderPalette();
+      showToast(`Look for "${charm.name}" in the library — matches: ${label}`);
+      $('#charm-search').value = '';
+      document.querySelector('.palette-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        const match = document.querySelector(`.palette-charm[aria-label="${charm.name}"]`);
+        match?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        match?.classList.add('highlight-flash');
+        setTimeout(() => match?.classList.remove('highlight-flash'), 2000);
+      }, 400);
+    } else {
+      showToast(label);
+    }
   }
 
   function renderReview() {
     reviewBracelet.innerHTML = '';
     bracelet.forEach((id, i) => reviewBracelet.appendChild(renderChainLink(id, i, false)));
-    $('#review-count').textContent = `${bracelet.length} charm links · ${Object.keys(
+    $('#review-count').textContent = `${bracelet.length} silver charm links · ${Object.keys(
       bracelet.reduce((a, id) => ({ ...a, [id]: 1 }), {})
     ).length} unique designs`;
   }
@@ -241,7 +335,7 @@
       bracelet.push(charmId);
     }
     render();
-    showToast(swapped ? 'Charm swapped' : 'Charm added');
+    showToast(swapped ? 'Charm swapped' : 'Charm added to bracelet');
   }
 
   function showToast(message, duration = 2800) {
@@ -259,7 +353,7 @@
     const container = $('#confetti');
     container.hidden = false;
     container.innerHTML = '';
-    const colors = ['#c9a227', '#c9a89a', '#e8a0b4', '#a67c6d', '#ffd700', '#fff'];
+    const colors = ['#c5cdd6', '#e8a0b4', '#64b5f6', '#f4f6f8', '#a67c6d'];
     for (let i = 0; i < 60; i++) {
       const piece = document.createElement('div');
       piece.className = 'confetti-piece';
@@ -278,11 +372,7 @@
 
   function approveDesign() {
     const shareUrl = getShareUrl();
-    const approval = {
-      bracelet: [...bracelet],
-      approvedAt: new Date().toISOString(),
-      shareUrl,
-    };
+    const approval = { bracelet: [...bracelet], approvedAt: new Date().toISOString(), shareUrl };
     localStorage.setItem(APPROVAL_KEY, JSON.stringify(approval));
     document.querySelector('.bracelet-panel').classList.add('approved');
 
@@ -296,7 +386,7 @@
 
     launchConfetti();
     copyText(shareUrl).then(() => {
-      showToast('Link copied — send it to him so he can order your bracelet! 💕', 4500);
+      showToast('Link copied — send it to Muhammad so he can order your bracelet! 💕', 4500);
     });
 
     if (reviewModal.open) reviewModal.close();
@@ -317,27 +407,21 @@
     const params = new URLSearchParams(window.location.search);
     const name = params.get('for');
     const gifter = params.get('view') === 'gifter';
-
     const herName = name || 'Kasya';
-    giftBanner.hidden = false;
-    $('#gift-message').textContent = `${herName}, design the bracelet you'd love to wear`;
-    $('.hero-sub').textContent = 'Pick each charm link, preview your creation, and tap "This is perfect!" when you love it — Muhammad will order it for you.';
+
+    $('#gift-message').textContent = `${herName}, design your silver Italian charm bracelet`;
+    $('.hero-sub').textContent = 'Silver base with small color accents — just like your example. Pick letters, hearts, animals & symbols, then tap "This is perfect!"';
 
     if (gifter) {
       document.body.classList.add('gifter-mode');
-      giftBanner.hidden = false;
       $('.hero-eyebrow').textContent = 'Her approved design';
-      $('#gift-message').textContent = name
-        ? `Here is the bracelet ${name} designed for you`
-        : 'Here is the bracelet design she chose';
-      $('.hero-sub').textContent = 'Use the shopping list below to order the matching 9mm charm links.';
+      $('#gift-message').textContent = `Here is the silver bracelet ${herName} designed`;
+      $('.hero-sub').textContent = 'Order these exact 9mm silver Italian charm links from the shopping list below.';
     }
   }
 
   function copyText(text) {
-    if (navigator.clipboard?.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
@@ -349,23 +433,15 @@
     return Promise.resolve();
   }
 
-  // Event bindings
-  $('#btn-more').addEventListener('click', () => {
-    bracelet.push(CHARMS[0].id);
-    render();
-  });
-
+  $('#btn-more').addEventListener('click', () => { bracelet.push('blank-silver'); render(); });
   $('#btn-less').addEventListener('click', () => {
-    if (bracelet.length <= 1) {
-      showToast('Keep at least one charm link');
-      return;
-    }
+    if (bracelet.length <= 1) { showToast('Keep at least one charm link'); return; }
     bracelet.pop();
     render();
   });
 
   $('#btn-reset').addEventListener('click', () => {
-    if (!confirm('Start over with the default bracelet?')) return;
+    if (!confirm('Start over with the default KASYA silver bracelet?')) return;
     bracelet = [...DEFAULT_BRACELET];
     selectedIndex = null;
     localStorage.removeItem(APPROVAL_KEY);
@@ -376,40 +452,44 @@
 
   $('#btn-approve').addEventListener('click', approveDesign);
   $('#review-approve').addEventListener('click', approveDesign);
-
-  $('#btn-review').addEventListener('click', () => {
-    renderReview();
-    reviewModal.showModal();
-  });
-
+  $('#btn-review').addEventListener('click', () => { renderReview(); reviewModal.showModal(); });
   $('#review-close').addEventListener('click', () => reviewModal.close());
   $('#review-back').addEventListener('click', () => reviewModal.close());
-  reviewModal.addEventListener('click', (e) => {
-    if (e.target === reviewModal) reviewModal.close();
-  });
+  reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.close(); });
 
   $('#btn-share').addEventListener('click', () => {
-    const url = getShareUrl();
-    copyText(url).then(() => showToast('Link copied — send it to him!'));
+    copyText(getShareUrl()).then(() => showToast('Link copied — send it to him!'));
   });
 
   $('#btn-copy-list').addEventListener('click', () => {
-    const lines = [];
+    const lines = ['Silver Italian Charm Bracelet — Shopping List', `Total links: ${bracelet.length}`, ''];
     const counts = {};
     bracelet.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
     Object.entries(counts).forEach(([id, count]) => {
-      lines.push(`${count}x ${CHARM_MAP[id].name}`);
+      const c = CHARM_MAP[id];
+      lines.push(`${count}× ${c.shopLabel || c.name}`);
     });
-    lines.unshift(`Italian Charm Bracelet (${bracelet.length} links)`);
-    lines.push('', 'Order 9mm Nomination-compatible modular links.');
+    lines.push('', 'Style: Silver 9mm modular links (Nomination-compatible)', 'Reference: Custom Lala / Italian charm bracelet');
     copyText(lines.join('\n')).then(() => showToast('Shopping list copied'));
   });
 
   $('#charm-search').addEventListener('input', renderPalette);
 
-  // Init
+  $('#btn-load-example').addEventListener('click', () => {
+    bracelet = [
+      'heart-magnetic', 'kitten', 'checkered-red', 'cherry',
+      'bmw', 'letter-a', 'letter-m', 'butterfly', 'bow-blue',
+      'jellyfish', 'enamel-blue', 'cat-black',
+    ];
+    selectedIndex = null;
+    render();
+    showToast('Loaded charms from your example board!');
+    document.querySelector('.bracelet-panel')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
   setupGiftMode();
   loadFromUrl();
   renderCategories();
+  renderReferenceGuide();
   render();
 })();
