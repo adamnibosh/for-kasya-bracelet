@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Design your perfect Italian charm bracelet — customize every link, preview your creation, and share your dream design.">
+  <title>For Kasya — Italian Charm Bracelet Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-icon">✦</span>
+          <div>
+            <h1>Charm Atelier</h1>
+            <p class="tagline">Italian charm bracelet designer</p>
+          </div>
+        </div>
+        <nav class="header-actions">
+          <button type="button" class="btn btn-ghost" id="btn-review" title="Full-screen preview">
+            <span aria-hidden="true">👁</span> Preview
+          </button>
+          <button type="button" class="btn btn-ghost" id="btn-share" title="Copy share link">
+            <span aria-hidden="true">🔗</span> Share
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="hero-card" id="gift-banner" hidden>
+        <p class="hero-eyebrow">A gift for you</p>
+        <h2 id="gift-message">Design the bracelet you'd love to wear</h2>
+        <p class="hero-sub">Pick each charm link, preview your creation, and let me know when it's perfect.</p>
+      </section>
+
+      <section class="workspace">
+        <div class="bracelet-panel">
+          <div class="panel-header">
+            <h2>Your Bracelet</h2>
+            <div class="length-control">
+              <label for="link-count">Links</label>
+              <button type="button" class="stepper-btn" id="btn-less" aria-label="Remove link">−</button>
+              <output id="link-count" for="link-slider">8</output>
+              <button type="button" class="stepper-btn" id="btn-more" aria-label="Add link">+</button>
+            </div>
+          </div>
+
+          <div class="bracelet-stage" id="bracelet-stage">
+            <div class="clasp clasp-left" aria-hidden="true"></div>
+            <div class="bracelet-chain" id="bracelet-chain" role="list" aria-label="Bracelet charm links"></div>
+            <div class="clasp clasp-right" aria-hidden="true"></div>
+          </div>
+
+          <p class="hint" id="chain-hint">Click a link to swap or remove · Drag to reorder</p>
+
+          <div class="panel-actions">
+            <button type="button" class="btn btn-secondary" id="btn-reset">Start over</button>
+            <button type="button" class="btn btn-primary" id="btn-approve">
+              <span aria-hidden="true">♥</span> This is perfect!
+            </button>
+          </div>
+        </div>
+
+        <aside class="palette-panel">
+          <div class="panel-header">
+            <h2>Charm Library</h2>
+            <input type="search" class="search-input" id="charm-search" placeholder="Search charms…" autocomplete="off">
+          </div>
+
+          <div class="category-tabs" id="category-tabs" role="tablist"></div>
+
+          <div class="charm-grid" id="charm-grid" role="listbox" aria-label="Available charms"></div>
+        </aside>
+      </section>
+
+      <section class="summary-panel" id="summary-panel">
+        <h2>Shopping list</h2>
+        <p class="summary-note">Use this list when ordering Nomination-style 9mm Italian charm links.</p>
+        <ol class="shopping-list" id="shopping-list"></ol>
+        <button type="button" class="btn btn-ghost btn-copy-list" id="btn-copy-list">Copy list</button>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Made with ♥ · Charm links shown are for preview — order matching 9mm modular links from your favorite jeweler.</p>
+    </footer>
+  </div>
+
+  <!-- Review overlay -->
+  <dialog class="review-modal" id="review-modal" aria-labelledby="review-title">
+    <div class="review-backdrop-decoration" aria-hidden="true"></div>
+    <div class="review-content">
+      <button type="button" class="review-close" id="review-close" aria-label="Close preview">×</button>
+      <p class="review-eyebrow">Your design</p>
+      <h2 id="review-title">Italian Charm Bracelet</h2>
+      <div class="review-bracelet-wrap">
+        <div class="review-bracelet" id="review-bracelet"></div>
+      </div>
+      <p class="review-count" id="review-count"></p>
+      <div class="review-actions">
+        <button type="button" class="btn btn-primary btn-lg" id="review-approve">
+          <span aria-hidden="true">♥</span> I love this design
+        </button>
+        <button type="button" class="btn btn-ghost" id="review-back">Keep editing</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Approval celebration -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <div class="confetti" id="confetti" aria-hidden="true" hidden></div>
+
+  <script src="assets/js/charms.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
