@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
-$repoName = "for-kasya-bracelet"
+$repoName = "kasyasbracelet"
 $owner = "adamnibosh"
 $url = "https://$owner.github.io/$repoName/?for=Kasya"
 $gifterUrl = "https://$owner.github.io/$repoName/?view=gifter&for=Kasya"
